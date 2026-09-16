@@ -7,10 +7,14 @@ import { boot } from './app/App.js';
 function syncAppHeight() {
   const vv = window.visualViewport;
   const h = vv ? vv.height : window.innerHeight;
+  const w = vv ? vv.width : window.innerWidth;
   const t = vv ? vv.offsetTop : 0;
+  const l = vv ? vv.offsetLeft : 0;
   const root = document.documentElement;
-  root.style.setProperty('--app-height', `${h}px`);
-  root.style.setProperty('--app-top', `${t}px`);
+  root.style.setProperty('--app-height', `${Math.round(h)}px`);
+  root.style.setProperty('--app-width', `${Math.round(w)}px`);
+  root.style.setProperty('--app-top', `${Math.round(t)}px`);
+  root.style.setProperty('--app-left', `${Math.round(l)}px`);
 }
 
 syncAppHeight();

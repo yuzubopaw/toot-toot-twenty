@@ -4,6 +4,8 @@ import * as missingAddend from './missingAddend.js';
 import * as compare from './compare.js';
 import * as bonds from './bonds.js';
 import * as mixed from './mixed.js';
+import * as count from './count.js';
+import * as order from './order.js';
 
 const BY_ROUTE = {
   [MODE_ROUTES.takeaway]: takeAway,
@@ -11,6 +13,8 @@ const BY_ROUTE = {
   [MODE_ROUTES.compare]: compare,
   [MODE_ROUTES.bond]: bonds,
   [MODE_ROUTES.mixed]: mixed,
+  [MODE_ROUTES.count]: count,
+  [MODE_ROUTES.order]: order,
 };
 
 const BY_OP = {
@@ -18,6 +22,8 @@ const BY_OP = {
   missing: missingAddend,
   compare: compare,
   bond: bonds,
+  count,
+  order,
 };
 
 export function modeFor(routeId) {
@@ -44,4 +50,4 @@ export function packSpecFor(problem) {
   return null;
 }
 
-export { takeAway, missingAddend, compare, bonds, mixed };
+export { takeAway, missingAddend, compare, bonds, mixed, count, order };

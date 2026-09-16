@@ -44,8 +44,9 @@ button:focus-visible {
 .shell {
   position: fixed;
   top: var(--app-top, 0px);
-  left: 0;
-  right: 0;
+  left: var(--app-left, 0px);
+  width: var(--app-width, 100%);
+  right: auto;
   height: var(--app-height, 100dvh);
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);

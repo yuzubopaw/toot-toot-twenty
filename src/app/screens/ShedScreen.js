@@ -1,12 +1,13 @@
 import { COLLECTIBLES } from '../../game/collectibles.js';
 import { renderSprite, engineSvg } from '../../ui/Sprite.js';
 import { onActivate } from '../input/pointer.js';
+import { sceneryMarkup } from '../../ui/Scenery.js';
 
 export function renderShedScreen(root, ctx) {
   root.innerHTML = '';
   const screen = document.createElement('div');
   screen.className = 'screen';
-  screen.innerHTML = `<div class="sky"></div><div class="cloud cloud-a"></div>`;
+  screen.innerHTML = sceneryMarkup({ sun: false, flowers: false });
   const chrome = document.createElement('div');
   chrome.className = 'chrome';
   const title = document.createElement('div');

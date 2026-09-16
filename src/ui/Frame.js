@@ -1,11 +1,15 @@
+import { frameCellCount, frameCellStart } from '../game/pack.js';
 import { renderSprite } from './Sprite.js';
+
+const ROOF = ['a', 'b', 'c', 'd', 'e'];
 
 export function renderFrame({ size, packed, frameId = 1, speciesA, speciesB, onTapAnimal, emptySeats = false }) {
   const frame = document.createElement('div');
-  frame.className = `frame size-${size}`;
+  const roof = ROOF[(Math.max(1, frameId) - 1) % ROOF.length];
+  frame.className = `frame size-${size} frame-${roof}`;
   frame.setAttribute('role', 'group');
-  const cells = size === 5 ? 5 : 10;
-  const start = frameId === 2 ? 10 : 0;
+  const cells = frameCellCount(size);
+  const start = frameCellStart(frameId, size);
 
   for (let i = 0; i < cells; i++) {
     const cellIndex = start + i;

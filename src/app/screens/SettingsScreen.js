@@ -1,11 +1,12 @@
 import { persist, resetAll, unlockAllRoutes } from '../storage/save.js';
 import { onActivate } from '../input/pointer.js';
+import { sceneryMarkup } from '../../ui/Scenery.js';
 
 export function renderSettingsScreen(root, ctx) {
   root.innerHTML = '';
   const screen = document.createElement('div');
   screen.className = 'screen';
-  screen.innerHTML = `<div class="sky"></div><div class="sun" aria-hidden="true"></div><div class="cloud cloud-b"></div>`;
+  screen.innerHTML = sceneryMarkup({ flowers: false });
 
   const chrome = document.createElement('div');
   chrome.className = 'chrome';

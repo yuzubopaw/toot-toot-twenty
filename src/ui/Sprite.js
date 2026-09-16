@@ -108,16 +108,20 @@ export function renderSprite(species, className = '') {
 }
 
 export function engineSvg(color = '#E85D4C') {
-  return `<svg viewBox="0 0 88 56" aria-hidden="true">
-    <rect x="4" y="22" width="52" height="20" rx="8" fill="${color}" stroke="#1A1A1A" stroke-width="4"/>
-    <rect x="34" y="8" width="24" height="18" rx="6" fill="#FFF8E7" stroke="#1A1A1A" stroke-width="4"/>
-    <rect x="40" y="12" width="12" height="10" rx="3" fill="#4A90D9" stroke="#1A1A1A" stroke-width="3"/>
-    <rect x="2" y="16" width="12" height="10" rx="3" fill="#2B2B2B" stroke="#1A1A1A" stroke-width="3"/>
-    <circle cx="18" cy="44" r="8" fill="#1A1A1A"/>
-    <circle cx="42" cy="44" r="8" fill="#1A1A1A"/>
-    <circle cx="18" cy="44" r="3.5" fill="#F5C542"/>
-    <circle cx="42" cy="44" r="3.5" fill="#F5C542"/>
-    <circle cx="62" cy="18" r="4" fill="#2B2B2B"/>
+  return `<svg viewBox="0 0 96 62" aria-hidden="true">
+    <polygon points="4,44 16,38 16,48" fill="#2B2B2B" stroke="#1A1A1A" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="12" y="24" width="46" height="22" rx="9" fill="${color}" stroke="#1A1A1A" stroke-width="3.5"/>
+    <rect x="48" y="12" width="30" height="34" rx="7" fill="${color}" stroke="#1A1A1A" stroke-width="3.5"/>
+    <rect x="54" y="17" width="18" height="14" rx="4" fill="#FFF8E7" stroke="#1A1A1A" stroke-width="3"/>
+    <rect x="57" y="20" width="12" height="8" rx="2" fill="#4A90D9" stroke="#1A1A1A" stroke-width="2"/>
+    <rect x="16" y="8" width="11" height="18" rx="3" fill="#2B2B2B" stroke="#1A1A1A" stroke-width="3"/>
+    <rect x="13" y="6" width="17" height="7" rx="3" fill="#2B2B2B" stroke="#1A1A1A" stroke-width="3"/>
+    <circle cx="38" cy="22" r="5" fill="#F5C542" stroke="#1A1A1A" stroke-width="3"/>
+    <rect x="78" y="28" width="8" height="14" rx="3" fill="#2B2B2B" stroke="#1A1A1A" stroke-width="3"/>
+    <circle cx="24" cy="50" r="9" fill="#1A1A1A"/>
+    <circle cx="54" cy="50" r="9" fill="#1A1A1A"/>
+    <circle cx="24" cy="50" r="4" fill="#F5C542"/>
+    <circle cx="54" cy="50" r="4" fill="#F5C542"/>
   </svg>`;
 }
 

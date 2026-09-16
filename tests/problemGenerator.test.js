@@ -125,9 +125,9 @@ describe('generateTrip', () => {
 });
 
 describe('mode routes', () => {
-  it('routes 7-11 emit six problems with op and answer', () => {
+  it('routes 7-12 emit six problems with op and answer', () => {
     const mastery = defaultState().mastery;
-    for (const routeId of [7, 8, 9, 10, 11]) {
+    for (const routeId of [7, 8, 9, 10, 11, 12]) {
       const trip = generateTrip({ routeId, mastery, seed: 21 });
       expect(trip).toHaveLength(6);
       trip.forEach((p) => {

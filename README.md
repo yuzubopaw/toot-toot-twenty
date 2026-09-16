@@ -1,8 +1,8 @@
 # Toot-Toot Twenty
 
-A colorful addition game for 5-year-olds (sums up to 20). Play in **iPad Safari** or a desktop browser.
+A colorful kindergarten math game for 5-year-olds. Play in **iPad Safari** or a desktop browser.
 
-Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together.
+Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together. Extra stations unlock along the line, including **Tally Track** (count up to 50) and **Date Depot** (put days in order up to 31).
 
 ## Play on the web
 

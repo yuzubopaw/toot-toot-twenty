@@ -6,10 +6,16 @@ export function renderGroup({ count, species, side }) {
   el.dataset.side = side;
   if (count === 0) {
     el.setAttribute('aria-label', 'Nobody waiting');
+    const seat = document.createElement('div');
+    seat.className = 'cell is-empty-seat';
+    el.appendChild(seat);
     return el;
   }
   for (let i = 0; i < count; i++) {
-    el.appendChild(renderSprite(species));
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.appendChild(renderSprite(species));
+    el.appendChild(cell);
   }
   return el;
 }

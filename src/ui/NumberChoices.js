@@ -1,6 +1,6 @@
 import { isTap, onActivate, pointFrom } from '../app/input/pointer.js';
 
-export function renderNumberChoices({ choices, strip, disabled, halo, dimmed, onChoose, onDisabledTap }) {
+export function renderNumberChoices({ choices, strip, disabled, halo, dimmed, used, onChoose, onDisabledTap }) {
   const wrap = document.createElement('div');
   wrap.className = strip ? 'answers strip' : 'answers';
   const nums = strip ? [...Array(21).keys()] : choices;
@@ -27,11 +27,13 @@ export function renderNumberChoices({ choices, strip, disabled, halo, dimmed, on
             : String(n);
     btn.setAttribute('aria-label', aria);
     btn.dataset.value = String(n);
-    const locked = disabled || (halo != null && n !== halo);
+    const taken = Boolean(used && used.has(n));
+    const locked = disabled || taken || (halo != null && n !== halo);
     if (locked) {
       btn.setAttribute('aria-disabled', 'true');
       btn.classList.add('is-locked-choice');
     }
+    if (taken) btn.classList.add('is-placed');
     if (halo === n) btn.classList.add('is-halo');
     if (dimmed && dimmed.has(n)) btn.classList.add('is-wrong');
     let start = null;

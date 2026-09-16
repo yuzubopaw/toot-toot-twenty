@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeLayout, FRAME_BAND, STRIP_MIN_WIDTH, useStrip } from '../src/app/layoutMode.js';
+import { computeLayout, FRAME_BAND, STRIP_MIN_WIDTH, useStrip, viewportSize } from '../src/app/layoutMode.js';
 
 describe('computeLayout', () => {
   it('iPad portrait is stacked', () => {
@@ -10,6 +10,22 @@ describe('computeLayout', () => {
   });
   it('1/3 split is unsupported', () => {
     expect(computeLayout(320, 768)).toBe('unsupported');
+  });
+});
+
+describe('viewportSize', () => {
+  it('prefers visualViewport over innerWidth (page zoom / spoofed desktop width)', () => {
+    expect(
+      viewportSize({
+        innerWidth: 980,
+        innerHeight: 1200,
+        visualViewport: { width: 390.4, height: 660.2 },
+      }),
+    ).toEqual({ width: 390, height: 660 });
+  });
+
+  it('falls back to innerWidth when visualViewport is missing', () => {
+    expect(viewportSize({ innerWidth: 1024, innerHeight: 768 })).toEqual({ width: 1024, height: 768 });
   });
 });
 
