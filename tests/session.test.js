@@ -33,6 +33,36 @@ describe('session', () => {
     expect(s.problemIndex).toBe(1);
   });
 
+  it('Tally Track trip is six count problems and accepts the count', () => {
+    const s = startTrip(12, mastery, 19);
+    expect(s.problems).toHaveLength(6);
+    expect(s.problems.every((p) => p.op === 'count')).toBe(true);
+    expect(s.problems.every((p) => p.answer >= 1 && p.answer <= 50)).toBe(true);
+    applyCombine(s);
+    const hit = applyAnswer(s, currentProblem(s).answer);
+    expect(hit.ignored).toBe(false);
+    expect(hit.correct).toBe(true);
+  });
+
+  it('Date Depot trip is six order problems and needs the full sequence', () => {
+    const s = startTrip(13, mastery, 19);
+    expect(s.problems).toHaveLength(6);
+    expect(s.problems.every((p) => p.op === 'order')).toBe(true);
+    expect(s.problems.every((p) => p.sequence.length === 3)).toBe(true);
+    applyCombine(s);
+    const seq = currentProblem(s).sequence;
+    const first = applyAnswer(s, seq[0]);
+    expect(first.ignored).toBe(false);
+    expect(first.correct).toBe(true);
+    expect(first.partial).toBe(true);
+    expect(s.status).not.toBe('celebrating');
+    applyAnswer(s, seq[1]);
+    const last = applyAnswer(s, seq[2]);
+    expect(last.partial).toBe(false);
+    expect(last.correct).toBe(true);
+    expect(s.status).toBe('celebrating');
+  });
+
   it('hint ladder then 6th correct sets tripDone without advance', () => {
     const s = startTrip(1, mastery, 11);
     for (let i = 0; i < 5; i++) {

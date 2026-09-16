@@ -74,6 +74,34 @@ describe('unlockMet', () => {
         recentByRoute: {},
       },
     };
-    expect(maybeUnlock(save)).toBe(6);
+    expect(maybeUnlock(save)).toBe(13);
+  });
+
+  it('Tally Track unlocks after Ten Bond Bay in the extra-mode chain', () => {
+    const save = {
+      mastery: {
+        adultUnlockedAll: false,
+        highestRouteUnlocked: 11,
+        tripsCompleted: 8,
+        tripsByRoute: { 10: 1 },
+        recentByRoute: {},
+      },
+    };
+    expect(unlockMet(save, 11)).toBe(true);
+    expect(maybeUnlock(save)).toBe(12);
+  });
+
+  it('Date Depot unlocks after Mix-Up Main in the extra-mode chain', () => {
+    const save = {
+      mastery: {
+        adultUnlockedAll: false,
+        highestRouteUnlocked: 12,
+        tripsCompleted: 9,
+        tripsByRoute: { 11: 1 },
+        recentByRoute: {},
+      },
+    };
+    expect(unlockMet(save, 12)).toBe(true);
+    expect(maybeUnlock(save)).toBe(13);
   });
 });

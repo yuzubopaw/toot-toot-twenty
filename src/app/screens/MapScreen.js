@@ -1,6 +1,8 @@
 import { renderMuteButton } from '../../ui/MuteButton.js';
 import { onActivate } from '../input/pointer.js';
 import { renderJourney } from '../../ui/Journey.js';
+import { sceneryMarkup } from '../../ui/Scenery.js';
+import { MODE_STATIONS } from '../../game/ops/contract.js';
 
 const STATIONS = [
   { id: 1, name: 'Garden Siding', emoji: '🌷' },
@@ -9,13 +11,20 @@ const STATIONS = [
   { id: 4, name: 'Ten Town', emoji: '🔟' },
   { id: 5, name: 'Summit Line', emoji: '⛰️' },
   { id: 6, name: 'Sunny Express', emoji: '☀️' },
+  ...MODE_STATIONS,
 ];
+
+function stationLocked(st, mastery) {
+  if (mastery.adultUnlockedAll) return false;
+  const highest = mastery.highestRouteUnlocked || 1;
+  return st.id > highest;
+}
 
 export function renderMapScreen(root, ctx) {
   root.innerHTML = '';
   const screen = document.createElement('div');
   screen.className = 'screen';
-  screen.innerHTML = `<div class="sky"></div><div class="hill hill-left"></div><div class="hill hill-right"></div>`;
+  screen.innerHTML = sceneryMarkup({ sun: false });
 
   const chrome = document.createElement('div');
   chrome.className = 'chrome';
@@ -43,7 +52,7 @@ export function renderMapScreen(root, ctx) {
   for (const st of STATIONS) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    const locked = st.id > highest;
+    const locked = stationLocked(st, ctx.save.mastery);
     btn.className = `station${locked ? ' is-locked' : ''}${st.id === recommended ? ' is-recommended' : ''}`;
     btn.innerHTML = `<span style="font-size:36px">${locked ? '🔒' : st.emoji}</span><span>${st.name}</span>`;
     btn.disabled = locked;

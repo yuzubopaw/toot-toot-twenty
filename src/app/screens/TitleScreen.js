@@ -1,19 +1,14 @@
 import { renderMuteButton } from '../../ui/MuteButton.js';
 import { onActivate } from '../input/pointer.js';
 import { renderJourney } from '../../ui/Journey.js';
+import { sceneryMarkup } from '../../ui/Scenery.js';
+import { renderTrainImg } from '../../ui/Sprite.js';
 
 export function renderTitleScreen(root, ctx) {
   root.innerHTML = '';
   const screen = document.createElement('div');
   screen.className = 'screen';
-  screen.innerHTML = `
-    <div class="sky"></div>
-    <div class="sun" aria-hidden="true"></div>
-    <div class="cloud" style="top:18%;left:8%;width:90px;height:36px"></div>
-    <div class="cloud" style="top:24%;left:28%;width:70px;height:28px"></div>
-    <div class="hill hill-left"></div>
-    <div class="hill hill-right"></div>
-  `;
+  screen.innerHTML = sceneryMarkup();
   const chrome = document.createElement('div');
   chrome.className = 'chrome';
   chrome.appendChild(
@@ -40,10 +35,14 @@ export function renderTitleScreen(root, ctx) {
   play.type = 'button';
   play.className = 'play-engine';
   play.setAttribute('aria-label', 'Tap to play');
-  play.innerHTML = `<span class="cab"></span><span>Tap to play</span>`;
+  play.appendChild(renderTrainImg('train-art'));
+  const label = document.createElement('span');
+  label.className = 'play-label';
+  label.textContent = 'Tap to play';
+  play.appendChild(label);
   onActivate(play, () => {
     ctx.audio.unlock().catch(() => {});
-    ctx.audio.playSfx('toot-short');
+    ctx.audio.playSfx('toot-long');
     ctx.show('map');
   });
   const hint = document.createElement('div');

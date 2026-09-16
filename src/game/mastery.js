@@ -1,3 +1,5 @@
+import { MAX_ROUTE_ID } from './ops/contract.js';
+
 export function emptyFact() {
   return { seen: 0, correctFirst: 0, correctRetry: 0, wrong: 0, streak: 0, lastTs: 0 };
 }
@@ -54,6 +56,10 @@ export function applyFactOutcome(fact, triesUntilCorrect, wrongEvents, now) {
 }
 
 export function unlockMet(save, n) {
+  if (n >= 7) {
+    if (n === 7) return (save.mastery.tripsCompleted || 0) >= 1;
+    return (save.mastery.tripsByRoute[String(n - 1)] || 0) >= 1;
+  }
   const trips = save.mastery.tripsByRoute[String(n)] || 0;
   const recent = save.mastery.recentByRoute[String(n)] || [];
   if (trips < 3) return false;
@@ -64,11 +70,11 @@ export function unlockMet(save, n) {
 
 export function maybeUnlock(save) {
   if (save.mastery.adultUnlockedAll) {
-    save.mastery.highestRouteUnlocked = 6;
+    save.mastery.highestRouteUnlocked = MAX_ROUTE_ID;
     return save.mastery.highestRouteUnlocked;
   }
   let n = save.mastery.highestRouteUnlocked;
-  while (n < 6 && unlockMet(save, n)) n += 1;
+  while (n < MAX_ROUTE_ID && unlockMet(save, n)) n += 1;
   save.mastery.highestRouteUnlocked = n;
   return n;
 }

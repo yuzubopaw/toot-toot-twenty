@@ -22,7 +22,7 @@ body,
   user-select: none;
   -webkit-touch-callout: none;
   touch-action: manipulation;
-  background: var(--color-sky);
+  background: var(--color-sky-deep);
   font-family: var(--font);
   color: var(--color-ink);
 }
@@ -44,8 +44,9 @@ button:focus-visible {
 .shell {
   position: fixed;
   top: var(--app-top, 0px);
-  left: 0;
-  right: 0;
+  left: var(--app-left, 0px);
+  width: var(--app-width, 100%);
+  right: auto;
   height: var(--app-height, 100dvh);
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
@@ -57,15 +58,17 @@ button:focus-visible {
 .caption {
   position: absolute;
   left: 50%;
-  top: 18%;
+  top: 16%;
   transform: translateX(-50%);
-  min-width: 88px;
-  min-height: 88px;
-  padding: 8px 20px;
-  border-radius: 24px;
+  min-width: 104px;
+  min-height: 104px;
+  padding: 10px 24px;
+  border-radius: 28px;
   background: var(--color-cream);
   box-shadow: var(--shadow-soft);
-  font-size: 56px;
+  border: 5px solid var(--color-ink);
+  font-size: 72px;
+  font-weight: 600;
   line-height: 1;
   text-align: center;
   pointer-events: none;

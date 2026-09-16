@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../src/game/rng.js';
 import {
+  SPECIES_PAIRS,
   factKeyOf,
   generateTrip,
   legalPairs,
@@ -11,6 +12,16 @@ import {
 } from '../src/game/problemGenerator.js';
 import { makeTenFields } from '../src/game/pack.js';
 import { defaultState } from '../src/app/storage/save.js';
+
+describe('species pairs', () => {
+  it('has twenty distinct animals in ten pairs', () => {
+    expect(SPECIES_PAIRS).toHaveLength(10);
+    const flat = SPECIES_PAIRS.flat();
+    expect(flat).toHaveLength(20);
+    expect(new Set(flat).size).toBe(20);
+    SPECIES_PAIRS.forEach(([a, b]) => expect(a).not.toBe(b));
+  });
+});
 
 describe('filters', () => {
   it('route 1 has no zeros and sums 1-5', () => {
@@ -74,6 +85,24 @@ describe('nextProblem never throws', () => {
   });
 });
 
+describe('kindergarten coverage', () => {
+  it('route 1 trips include a partners-of-5 fact', () => {
+    const mastery = defaultState().mastery;
+    for (let seed = 1; seed <= 20; seed++) {
+      const t = generateTrip({ routeId: 1, mastery, seed });
+      expect(t.some((p) => p.a + p.b === 5)).toBe(true);
+    }
+  });
+
+  it('route 4 trips include a 10+n teen', () => {
+    const mastery = { ...defaultState().mastery, highestRouteUnlocked: 5 };
+    for (let seed = 1; seed <= 20; seed++) {
+      const t = generateTrip({ routeId: 4, mastery, seed });
+      expect(t.some((p) => p.a === 10 || p.b === 10)).toBe(true);
+    }
+  });
+});
+
 describe('generateTrip', () => {
   it('returns 6, unique unless pool tiny, route 1 no zeros, route 2 make-ten', () => {
     const mastery = defaultState().mastery;
@@ -91,6 +120,21 @@ describe('generateTrip', () => {
       const t = generateTrip({ routeId: r, mastery: { ...mastery, highestRouteUnlocked: 5 }, seed: r * 17 });
       expect(t).toHaveLength(6);
       expect(t.every((p) => p.a + p.b === p.sum && p.sum <= 20)).toBe(true);
+    }
+  });
+});
+
+describe('mode routes', () => {
+  it('routes 7-12 emit six problems with op and answer', () => {
+    const mastery = defaultState().mastery;
+    for (const routeId of [7, 8, 9, 10, 11, 12]) {
+      const trip = generateTrip({ routeId, mastery, seed: 21 });
+      expect(trip).toHaveLength(6);
+      trip.forEach((p) => {
+        expect(p.answer).toBeDefined();
+        expect(p.choices.includes(p.answer)).toBe(true);
+        expect(p.op).toBeTruthy();
+      });
     }
   });
 });

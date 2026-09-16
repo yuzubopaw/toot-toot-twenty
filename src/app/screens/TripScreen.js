@@ -1,29 +1,54 @@
-import { packAnimals } from '../../game/pack.js';
-import { startTrip, applyCombine, applyAnswer, advance, currentProblem } from '../../game/session.js';
+import { frameCellCount, packAnimals, packCount } from '../../game/pack.js';
+import { equationPartsFor, packSpecFor } from '../../game/ops/index.js';
+import { startTrip, applyCombine, applyAnswer, advance, currentProblem, nextExpected } from '../../game/session.js';
 import { recordCorrect } from '../storage/save.js';
-import { useStrip } from '../layoutMode.js';
+import { useStrip, viewportSize } from '../layoutMode.js';
 import { features } from '../features.js';
 import { renderMuteButton } from '../../ui/MuteButton.js';
 import { renderFrame, pulseCell } from '../../ui/Frame.js';
 import { renderNumberChoices } from '../../ui/NumberChoices.js';
-import { ANSWER_LOCK_MS, AUTO_COUNT_MS, AUTO_COUNT_REDUCED_MS } from '../../game/hints.js';
+import { renderOrderLine } from '../../ui/OrderLine.js';
+import { ANSWER_LOCK_MS, AUTO_COUNT_MS, AUTO_COUNT_REDUCED_MS, CELEBRATE_MS } from '../../game/hints.js';
 import { onActivate } from '../input/pointer.js';
 import { renderJourney, setJourneyProgress } from '../../ui/Journey.js';
+import { sceneryMarkup } from '../../ui/Scenery.js';
+import { burstCelebrate } from '../../ui/Celebrate.js';
+import { renderStationImg, renderTrainImg } from '../../ui/Sprite.js';
+import { renderCoupleLever, wiggleLever } from '../../ui/CoupleLever.js';
+import { renderGroup } from '../../ui/Group.js';
 
-const CHUG_MS = 800;
+const CHUG_MS = CELEBRATE_MS;
+export const JOIN_MS = 500;
+
+function isJoinAdd(problem) {
+  return Boolean(problem) && (!problem.op || problem.op === 'add');
+}
+
+/** ms until auto-combine, or null if the child must tap the lever. */
+export function autoCombineDelayMs(problem, session, reduceMotion, now) {
+  if (!isJoinAdd(problem)) return 0;
+  if (problem.requireCombine) return null;
+  if (reduceMotion) return 0;
+  return Math.max(0, (session.autoCombineAt || 0) - now);
+}
 
 export function renderTripScreen(root, ctx, params) {
   const routeId = params.routeId || 1;
   const session = startTrip(routeId, ctx.save.mastery, Date.now());
-  applyCombine(session);
   let lockUntil = 0;
   let dimmed = new Set();
   let counting = false;
   let counted = new Set();
   let journeyEl = null;
   let problemHost = null;
+  let answersHost = null;
   let eqEl = null;
   let muteHost = null;
+  let screenEl = null;
+  let roundId = 0;
+  let combineTimer = 0;
+  let joinTimer = 0;
+  let joinRaf = 0;
 
   function progress() {
     if (session.tripDone) return 6;
@@ -46,6 +71,15 @@ export function renderTripScreen(root, ctx, params) {
     ctx.show('map');
   }
 
+  function clearCombineWait() {
+    if (combineTimer) window.clearTimeout(combineTimer);
+    if (joinTimer) window.clearTimeout(joinTimer);
+    if (joinRaf) window.cancelAnimationFrame(joinRaf);
+    combineTimer = 0;
+    joinTimer = 0;
+    joinRaf = 0;
+  }
+
   function confirmHome() {
     if (session.tripDone) {
       goMap();
@@ -55,24 +89,43 @@ export function renderTripScreen(root, ctx, params) {
     overlay.className = 'overlay';
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `<div>Leave this trip?</div>`;
     const stay = document.createElement('button');
-    stay.className = 'big-btn green';
-    stay.textContent = 'Keep playing';
+    stay.className = 'play-engine confirm-stay';
+    stay.setAttribute('aria-label', 'Keep playing');
+    stay.appendChild(renderTrainImg('train-art'));
     onActivate(stay, () => overlay.remove());
     const leave = document.createElement('button');
-    leave.className = 'big-btn amber';
-    leave.textContent = 'Go to map';
+    leave.className = 'parade-stations confirm-leave';
+    leave.setAttribute('aria-label', 'Stations');
+    leave.appendChild(renderStationImg('station-art'));
     onActivate(leave, goMap);
     card.append(stay, leave);
     overlay.appendChild(card);
     root.querySelector('.screen').appendChild(overlay);
   }
 
+  function pulseChoice(value) {
+    const btn = answersHost?.querySelector(`.choice[data-value="${value}"]`);
+    if (!btn) return;
+    btn.classList.add('is-pulse');
+    window.setTimeout(() => btn.classList.remove('is-pulse'), 280);
+  }
+
   async function autoCount(problem) {
     counting = true;
-    const packed = packAnimals(problem.a, problem.b);
     const ms = ctx.reduceMotion() ? AUTO_COUNT_REDUCED_MS : AUTO_COUNT_MS;
+    if (problem && problem.op === 'order' && Array.isArray(problem.sequence)) {
+      const start = (session.placed || []).length;
+      for (let i = start; i < problem.sequence.length; i += 1) {
+        const n = problem.sequence[i];
+        pulseChoice(n);
+        ctx.audio.speakNumber(n, 'count');
+        await new Promise((r) => window.setTimeout(r, ms));
+      }
+      counting = false;
+      return;
+    }
+    const packed = packedFor(problem, false);
     for (const animal of packed) {
       pulseCell(problemHost, animal.cell);
       ctx.audio.speakNumber(animal.cell + 1, 'count');
@@ -82,24 +135,210 @@ export function renderTripScreen(root, ctx, params) {
   }
 
   function youWin() {
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<div style="font-size:40px">🚉</div>
-      <div>The train is here!</div>
-      <div>You win</div>`;
-    const again = document.createElement('button');
-    again.className = 'big-btn green';
-    again.textContent = 'Another trip';
-    onActivate(again, () => ctx.show('trip', { routeId: session.routeId }));
-    const mapBtn = document.createElement('button');
-    mapBtn.className = 'big-btn';
-    mapBtn.textContent = 'Map';
-    onActivate(mapBtn, goMap);
-    card.append(again, mapBtn);
-    overlay.appendChild(card);
-    root.querySelector('.screen').appendChild(overlay);
+    ctx.show('parade', { routeId: session.routeId, toots: session.toots });
+  }
+
+  function normalizeParts(raw) {
+    if (!raw || !raw.length) return null;
+    return raw.map((p) => {
+      if (p && typeof p === 'object' && !Array.isArray(p) && p.text != null) return p;
+      if (Array.isArray(p) && p.length >= 2) return { className: String(p[0]), text: String(p[1]) };
+      const text = String(p);
+      const isOp = ['+', '−', '-', '=', 'vs', '?', '◀', '▶', '→', '📅', '🔢'].includes(text);
+      return { className: isOp ? 'eq-op' : 'eq-num', text };
+    });
+  }
+
+  function packedFor(problem, celebrating) {
+    const spec = packSpecFor(problem);
+    const split = frameCellCount(problem.frameSize);
+    if (!spec || !problem.op || problem.op === 'add') return packAnimals(problem.a, problem.b, problem.frameSize);
+    if (spec.kind === 'takeaway') {
+      const out = [];
+      for (let i = 0; i < spec.stay; i++) out.push({ species: 'A', cell: i, frame: i < split ? 1 : 2 });
+      if (!celebrating) {
+        for (let i = 0; i < spec.leave; i++) {
+          const cell = spec.stay + i;
+          out.push({ species: 'B', cell, frame: cell < split ? 1 : 2, leaving: true });
+        }
+      }
+      return out;
+    }
+    if (spec.kind === 'missing') {
+      const out = [];
+      for (let i = 0; i < spec.seated; i++) out.push({ species: 'A', cell: i, frame: 1 });
+      if (celebrating) {
+        for (let i = 0; i < spec.missing; i++) {
+          out.push({ species: 'A', cell: spec.seated + i, frame: 1 });
+        }
+      }
+      return out;
+    }
+    if (spec.kind === 'compare') {
+      const out = [];
+      for (let i = 0; i < spec.left; i++) out.push({ species: 'A', cell: i, frame: 1 });
+      for (let i = 0; i < spec.right; i++) out.push({ species: 'B', cell: split + i, frame: 2 });
+      return out;
+    }
+    if (spec.kind === 'bond') {
+      const out = [];
+      for (let i = 0; i < spec.a; i++) out.push({ species: 'A', cell: i, frame: 1 });
+      if (celebrating) {
+        for (let i = 0; i < spec.b; i++) {
+          out.push({ species: 'B', cell: spec.a + i, frame: 1 });
+        }
+      }
+      return out;
+    }
+    if (spec.kind === 'count') {
+      return packCount(spec.n, problem.frameSize);
+    }
+    if (spec.kind === 'order') return [];
+    return packAnimals(problem.a, problem.b, problem.frameSize);
+  }
+
+  function paintEquation(problem) {
+    const celebrating = session.status === 'celebrating';
+    eqEl.classList.toggle('is-correct', celebrating);
+    eqEl.replaceChildren();
+    const custom = normalizeParts(equationPartsFor(problem, { celebrating, placed: session.placed || [] }));
+    const parts = custom || [
+      { className: 'eq-num eq-a', text: String(problem.a) },
+      { className: 'eq-op', text: '+' },
+      { className: 'eq-num eq-b', text: String(problem.b) },
+      { className: 'eq-op', text: '=' },
+      { className: celebrating ? 'eq-sum is-reveal' : 'eq-sum', text: celebrating ? String(problem.answer ?? problem.sum) : '?' },
+    ];
+    for (const part of parts) {
+      const span = document.createElement('span');
+      span.className = part.className;
+      span.textContent = part.text;
+      eqEl.appendChild(span);
+    }
+  }
+
+  function playCorrectFx() {
+    ctx.audio.playSfx('cheer');
+    ctx.audio.playSfx('sparkle');
+    ctx.audio.playSfx('toot-short');
+    if (currentProblem(session)?.op === 'takeaway') ctx.audio.playSfx('hop');
+    if (currentProblem(session)?.op === 'order') ctx.audio.playSfx('ticket-punch');
+    burstCelebrate(screenEl, { reduced: ctx.reduceMotion() });
+    problemHost?.querySelectorAll('.cell').forEach((cell) => {
+      if (cell.querySelector('.sprite')) cell.classList.add('is-cheer');
+    });
+  }
+
+  function nudgeLocked() {
+    ctx.audio.playSfx('nudge');
+    if (!session.combined) wiggleLever(problemHost?.querySelector('.lever'));
+  }
+
+  function speakCount(idx) {
+    counted.add(idx);
+    ctx.audio.speakNumber(idx, 'count');
+    pulseCell(problemHost, idx - 1);
+  }
+
+  function wireCountTaps(groupEl, startCount) {
+    [...groupEl.children].forEach((child, i) => {
+      const n = startCount + i;
+      let cell = child;
+      if (!child.classList.contains('cell')) {
+        cell = document.createElement('div');
+        cell.className = 'cell';
+        groupEl.replaceChild(cell, child);
+        cell.appendChild(child);
+      }
+      cell.dataset.cell = String(n - 1);
+      cell.addEventListener('pointerup', (e) => {
+        e.stopPropagation();
+        speakCount(n);
+      });
+    });
+  }
+
+  function kickAutoJoin(row, problem) {
+    if (!row || problem.requireCombine || ctx.reduceMotion() || session.combined) return;
+    const ms = Math.max(JOIN_MS, (session.autoCombineAt || 0) - Date.now());
+    row.style.setProperty('--join-ms', `${ms}ms`);
+    joinRaf = window.requestAnimationFrame(() => {
+      joinRaf = window.requestAnimationFrame(() => {
+        if (!row.isConnected || session.combined) return;
+        row.classList.add('is-joining');
+      });
+    });
+  }
+
+  function finishCombine({ fromLever } = {}) {
+    if (session.combined) return;
+    const id = roundId;
+    clearCombineWait();
+    applyCombine(session);
+    ctx.audio.playSfx('couple-clank');
+    ctx.audio.playSfx('merge');
+    const row = problemHost?.querySelector('.frame-row');
+    const alreadyJoining = row?.classList.contains('is-joining');
+    const playJoin = row && !ctx.reduceMotion() && (fromLever || !alreadyJoining);
+    if (!playJoin) {
+      paintProblem();
+      return;
+    }
+    row.classList.add('is-joining');
+    row.style.setProperty('--join-ms', `${JOIN_MS}ms`);
+    const lever = row.querySelector('.lever');
+    if (lever) {
+      lever.classList.add('is-down');
+      lever.classList.remove('is-pulse');
+    }
+    joinTimer = window.setTimeout(() => {
+      if (id !== roundId) return;
+      paintProblem();
+    }, JOIN_MS);
+  }
+
+  function scheduleAutoCombine(id) {
+    const problem = currentProblem(session);
+    const delay = autoCombineDelayMs(problem, session, ctx.reduceMotion(), Date.now());
+    if (delay == null || session.combined) return;
+    combineTimer = window.setTimeout(() => {
+      if (id !== roundId || session.combined) return;
+      finishCombine({ fromLever: false });
+    }, delay);
+  }
+
+  function beginRound() {
+    roundId += 1;
+    clearCombineWait();
+    const problem = currentProblem(session);
+    const delay = autoCombineDelayMs(problem, session, ctx.reduceMotion(), Date.now());
+    if (delay === 0) applyCombine(session);
+    paintProblem();
+    scheduleAutoCombine(roundId);
+  }
+
+  function renderWaitingRow(problem) {
+    const row = document.createElement('div');
+    row.className = 'frame-row is-apart';
+    const left = renderGroup({ count: problem.a, species: problem.speciesA, side: 'left' });
+    const right = renderGroup({ count: problem.b, species: problem.speciesB, side: 'right' });
+    wireCountTaps(left, 1);
+    wireCountTaps(right, (problem.a || 0) + 1);
+    const hitch = document.createElement('div');
+    hitch.style.cssText =
+      'display:flex;flex-direction:column;align-items:center;gap:4px;flex:0 0 auto;align-self:center;';
+    const plus = document.createElement('span');
+    plus.className = 'plus-sign';
+    plus.textContent = '+';
+    plus.setAttribute('aria-hidden', 'true');
+    const lever = renderCoupleLever({
+      pulse: !!problem.requireCombine,
+      onCouple: () => finishCombine({ fromLever: true }),
+    });
+    hitch.append(plus, lever);
+    row.append(left, hitch, right);
+    kickAutoJoin(row, problem);
+    return row;
   }
 
   async function onChoose(n) {
@@ -107,7 +346,14 @@ export function renderTripScreen(root, ctx, params) {
     lockUntil = Date.now() + ANSWER_LOCK_MS;
     const result = applyAnswer(session, n);
     if (result.ignored) {
-      ctx.audio.playSfx('nudge');
+      nudgeLocked();
+      return;
+    }
+    if (result.partial) {
+      dimmed.delete(n);
+      ctx.audio.playSfx('ticket-punch');
+      ctx.audio.speakNumber(n, 'count');
+      paintProblem();
       return;
     }
     if (!result.correct) {
@@ -118,23 +364,29 @@ export function renderTripScreen(root, ctx, params) {
       if (result.hintLevel === 2) await autoCount(currentProblem(session));
       return;
     }
+    dimmed.delete(n);
     persistCorrect(result);
-    ctx.audio.playSfx('toot-short');
-    ctx.audio.speakNumber(currentProblem(session).sum, 'sum');
+    const spoken = currentProblem(session);
+    const spokenN =
+      spoken.op === 'order' && Array.isArray(spoken.sequence)
+        ? spoken.sequence[spoken.sequence.length - 1]
+        : spoken.answer ?? spoken.sum;
+    if (typeof spokenN === 'number') {
+      ctx.audio.speakNumber(spokenN, 'sum');
+    }
     setJourneyProgress(journeyEl, progress());
     paintProblem();
-    const wait = ctx.reduceMotion() ? 350 : Math.max(CHUG_MS, 600);
+    playCorrectFx();
+    const wait = ctx.reduceMotion() ? 400 : Math.max(CHUG_MS, 700);
     window.setTimeout(() => {
       if (result.tripDone) {
-        ctx.audio.playSfx('cheer');
         youWin();
         return;
       }
       advance(session, Date.now());
-      applyCombine(session);
       dimmed = new Set();
       counted = new Set();
-      paintProblem();
+      beginRound();
     }, wait);
   }
 
@@ -148,7 +400,8 @@ export function renderTripScreen(root, ctx, params) {
     root.innerHTML = '';
     const screen = document.createElement('div');
     screen.className = 'screen';
-    screen.innerHTML = `<div class="sky"></div><div class="sun" aria-hidden="true"></div><div class="hill hill-left"></div><div class="hill hill-right"></div>`;
+    screen.innerHTML = sceneryMarkup();
+    screenEl = screen;
 
     const chrome = document.createElement('div');
     chrome.className = 'chrome';
@@ -170,8 +423,9 @@ export function renderTripScreen(root, ctx, params) {
     stage.className = 'trip-stage';
     problemHost = document.createElement('div');
     problemHost.className = 'trip-problem';
-    problemHost.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;';
-    stage.appendChild(problemHost);
+    answersHost = document.createElement('div');
+    answersHost.className = 'answers-host';
+    stage.append(problemHost, answersHost);
 
     journeyEl = renderJourney({ progress: 0 });
 
@@ -181,7 +435,7 @@ export function renderTripScreen(root, ctx, params) {
 
   function paintProblem() {
     ensureShell();
-    if (!problemHost) return;
+    if (!problemHost || !answersHost) return;
     const problem = currentProblem(session);
     muteHost.replaceChildren(
       renderMuteButton({
@@ -192,57 +446,89 @@ export function renderTripScreen(root, ctx, params) {
         },
       }),
     );
-    eqEl.textContent = `${problem.a} + ${problem.b} = ?`;
+    paintEquation(problem);
+    eqEl.classList.toggle('is-order', problem.op === 'order');
 
+    const box = viewportSize();
     const strip = useStrip(problem, ctx.save.mastery, features, {
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width: box.width,
+      height: box.height,
       layout: document.documentElement.dataset.layout || 'wide',
     });
-    const packed = packAnimals(problem.a, problem.b);
+    const packed = packedFor(problem, session.status === 'celebrating');
     problemHost.innerHTML = '';
-    const row = document.createElement('div');
-    row.className = 'frame-row';
-    const frames = problem.frameCount === 2 ? [1, 2] : [1];
-    for (const id of frames) {
-      row.appendChild(
-        renderFrame({
-          size: problem.frameSize,
-          packed,
-          frameId: id,
+    const waiting = !session.combined && session.status !== 'celebrating' && isJoinAdd(problem);
+    if (problem.op === 'order') {
+      const placed = session.status === 'celebrating' ? problem.sequence : session.placed || [];
+      problemHost.appendChild(
+        renderOrderLine({
+          sequence: problem.sequence,
+          placed,
           speciesA: problem.speciesA,
           speciesB: problem.speciesB,
-          onTapAnimal: (idx) => {
-            counted.add(idx);
-            ctx.audio.speakNumber(idx, 'count');
-          },
+          celebrating: session.status === 'celebrating',
+          onTap: (day) => ctx.audio.speakNumber(day, 'count'),
         }),
       );
+    } else if (waiting) {
+      problemHost.appendChild(renderWaitingRow(problem));
+    } else {
+      const row = document.createElement('div');
+      const frameCount = Math.max(1, problem.frameCount || 1);
+      row.className = frameCount > 2 ? 'frame-row is-count' : 'frame-row';
+      const emptySeats = problem.op === 'missing' || problem.op === 'bond' || problem.op === 'count';
+      for (let id = 1; id <= frameCount; id += 1) {
+        row.appendChild(
+          renderFrame({
+            size: problem.frameSize,
+            packed,
+            frameId: id,
+            speciesA: problem.speciesA,
+            speciesB: problem.speciesB,
+            emptySeats,
+            onTapAnimal: (idx) => speakCount(idx),
+          }),
+        );
+      }
+      problemHost.appendChild(row);
     }
-    problemHost.appendChild(row);
-    const halo = session.hintLevel >= 3 ? problem.sum : null;
-    problemHost.appendChild(
+    const used = new Set(session.placed || []);
+    if (problem.op === 'order' && session.status === 'celebrating') {
+      (problem.sequence || []).forEach((n) => used.add(n));
+    }
+    const halo = session.hintLevel >= 3 ? nextExpected(session) : null;
+    answersHost.replaceChildren(
       renderNumberChoices({
         choices: problem.choices,
         strip,
-        disabled: session.status === 'celebrating',
+        disabled: session.status === 'celebrating' || !session.combined,
         halo,
         dimmed,
+        used: problem.op === 'order' ? used : undefined,
         onChoose,
-        onDisabledTap: () => ctx.audio.playSfx('nudge'),
+        onDisabledTap: nudgeLocked,
       }),
     );
     setJourneyProgress(journeyEl, progress());
   }
 
-  paintProblem();
+  beginRound();
   const onResize = () => {
     const step = progress();
     problemHost = null;
+    answersHost = null;
     journeyEl = null;
+    screenEl = null;
+    clearCombineWait();
     paintProblem();
+    scheduleAutoCombine(roundId);
     setJourneyProgress(journeyEl, step, { instant: true });
   };
   window.addEventListener('resize', onResize);
-  return () => window.removeEventListener('resize', onResize);
+  window.visualViewport?.addEventListener('resize', onResize);
+  return () => {
+    window.removeEventListener('resize', onResize);
+    window.visualViewport?.removeEventListener('resize', onResize);
+    clearCombineWait();
+  };
 }

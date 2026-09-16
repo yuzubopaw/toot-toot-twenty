@@ -30,7 +30,18 @@ export function startTrip(routeId, mastery, seed) {
     rng: typeof seed === 'function' ? seed : null,
     autoCombineAt: first.requireCombine ? 0 : now + AUTO_COMBINE_MS,
     tripDone: false,
+    placed: [],
   };
+}
+
+export function nextExpected(session) {
+  const problem = currentProblem(session);
+  if (!problem) return undefined;
+  if (problem.op === 'order' && Array.isArray(problem.sequence)) {
+    const i = (session.placed || []).length;
+    return problem.sequence[i];
+  }
+  return problem.answer != null ? problem.answer : problem.sum;
 }
 
 export function applyCombine(session) {
@@ -40,19 +51,46 @@ export function applyCombine(session) {
   return { combined: true };
 }
 
+function matchAnswer(session, problem, value) {
+  if (problem && problem.op === 'order' && Array.isArray(problem.sequence)) {
+    const placed = session.placed ? session.placed.slice() : [];
+    if (placed.includes(value)) return { ignored: true, wiggle: false };
+    if (value !== problem.sequence[placed.length]) return { miss: true };
+    placed.push(value);
+    if (placed.length < problem.sequence.length) return { partial: true, placed };
+    return { placed };
+  }
+  const expected = problem.answer != null ? problem.answer : problem.sum;
+  if (value !== expected) return { miss: true };
+  return {};
+}
+
 export function applyAnswer(session, value) {
   if (!session.combined) {
     return {
       ignored: true,
       wiggle: true,
       correct: false,
+      partial: false,
       hintLevel: session.hintLevel,
       triesUntilCorrect: 0,
       tripDone: false,
     };
   }
   const problem = currentProblem(session);
-  if (value !== problem.sum) {
+  const check = matchAnswer(session, problem, value);
+  if (check.ignored) {
+    return {
+      ignored: true,
+      wiggle: Boolean(check.wiggle),
+      correct: false,
+      partial: false,
+      hintLevel: session.hintLevel,
+      triesUntilCorrect: 0,
+      tripDone: false,
+    };
+  }
+  if (check.miss) {
     session.missesThisProblem += 1;
     session.hintLevel = nextHintLevel(session.missesThisProblem);
     session.status = `hint${session.hintLevel}`;
@@ -60,6 +98,20 @@ export function applyAnswer(session, value) {
       ignored: false,
       wiggle: false,
       correct: false,
+      partial: false,
+      hintLevel: session.hintLevel,
+      triesUntilCorrect: 0,
+      tripDone: false,
+    };
+  }
+  if (check.placed) session.placed = check.placed;
+  if (check.partial) {
+    session.status = 'awaitingAnswer';
+    return {
+      ignored: false,
+      wiggle: false,
+      correct: true,
+      partial: true,
       hintLevel: session.hintLevel,
       triesUntilCorrect: 0,
       tripDone: false,
@@ -75,6 +127,7 @@ export function applyAnswer(session, value) {
       ignored: false,
       wiggle: false,
       correct: true,
+      partial: false,
       hintLevel: session.hintLevel,
       triesUntilCorrect,
       tripDone: true,
@@ -84,6 +137,7 @@ export function applyAnswer(session, value) {
     ignored: false,
     wiggle: false,
     correct: true,
+    partial: false,
     hintLevel: session.hintLevel,
     triesUntilCorrect,
     tripDone: false,
@@ -97,6 +151,7 @@ export function advance(session, now) {
   session.missesThisProblem = 0;
   session.status = 'presenting';
   session.tripDone = false;
+  session.placed = [];
   const next = session.problems[session.problemIndex];
   session.autoCombineAt = next && next.requireCombine ? 0 : now + AUTO_COMBINE_MS;
 }

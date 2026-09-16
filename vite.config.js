@@ -5,6 +5,10 @@ const CSP =
 
 export default defineConfig({
   base: './',
+  server: {
+    host: true,
+    allowedHosts: true,
+  },
   plugins: [
     {
       name: 'production-csp',

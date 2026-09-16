@@ -3,10 +3,20 @@
   { "id": "bunny", "label": "Bunny", "spriteKey": "animal-bunny", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "puppy", "label": "Puppy", "spriteKey": "animal-puppy", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "kitten", "label": "Kitten", "spriteKey": "animal-kitten", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "pig", "label": "Pig", "spriteKey": "animal-pig", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "chick", "label": "Chick", "spriteKey": "animal-chick", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "bear", "label": "Bear", "spriteKey": "animal-bear", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "frog", "label": "Frog", "spriteKey": "animal-frog", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "fox", "label": "Fox", "spriteKey": "animal-fox", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "panda", "label": "Panda", "spriteKey": "animal-panda", "cellAnchor": { "x": 0.5, "y": 0.7 } },
   { "id": "hedgehog", "label": "Hedgehog", "spriteKey": "animal-hedgehog", "cellAnchor": { "x": 0.5, "y": 0.7 } },
-  { "id": "owl", "label": "Owl", "spriteKey": "animal-owl", "cellAnchor": { "x": 0.5, "y": 0.7 } }
+  { "id": "owl", "label": "Owl", "spriteKey": "animal-owl", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "mouse", "label": "Mouse", "spriteKey": "animal-mouse", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "squirrel", "label": "Squirrel", "spriteKey": "animal-squirrel", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "penguin", "label": "Penguin", "spriteKey": "animal-penguin", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "sheep", "label": "Sheep", "spriteKey": "animal-sheep", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "cow", "label": "Cow", "spriteKey": "animal-cow", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "elephant", "label": "Elephant", "spriteKey": "animal-elephant", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "giraffe", "label": "Giraffe", "spriteKey": "animal-giraffe", "cellAnchor": { "x": 0.5, "y": 0.7 } },
+  { "id": "raccoon", "label": "Raccoon", "spriteKey": "animal-raccoon", "cellAnchor": { "x": 0.5, "y": 0.7 } }
 ]

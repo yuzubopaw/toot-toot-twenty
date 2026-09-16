@@ -1,5 +1,5 @@
 import { load, persist } from './storage/save.js';
-import { computeLayout } from './layoutMode.js';
+import { computeLayout, viewportSize } from './layoutMode.js';
 import { createAudioManager } from './audio/AudioManager.js';
 import { desktopCheatsEnabled } from './input/pointer.js';
 import { renderTitleScreen } from './screens/TitleScreen.js';
@@ -47,6 +47,8 @@ export function boot(appEl) {
   function toggleMute() {
     save.settings.muted = !save.settings.muted;
     persist(save);
+    ctx.audio.setMuted?.();
+    ctx.audio.stopBed?.();
     const top = stack[stack.length - 1];
     if (top.name !== 'trip') render();
   }
@@ -63,7 +65,8 @@ export function boot(appEl) {
   }
 
   function applyLayout() {
-    const layout = computeLayout(window.innerWidth, window.innerHeight);
+    const { width, height } = viewportSize();
+    const layout = computeLayout(width, height);
     document.documentElement.dataset.layout = layout;
     document.documentElement.classList.toggle('reduce-motion', reduceMotion());
   }
@@ -84,19 +87,22 @@ export function boot(appEl) {
     inner.style.cssText = 'position:relative;width:100%;height:100%;';
     shell.appendChild(inner);
 
+    ctx.audio.stopBed?.();
     if (top.name === 'title') renderTitleScreen(inner, ctx);
     else if (top.name === 'map') renderMapScreen(inner, ctx);
     else if (top.name === 'settings') renderSettingsScreen(inner, ctx);
     else if (top.name === 'trip') cleanup = renderTripScreen(inner, ctx, top.params) || null;
-    else if (top.name === 'parade') renderParadeScreen(inner, ctx, top.params);
+    else if (top.name === 'parade') cleanup = renderParadeScreen(inner, ctx, top.params) || null;
     else if (top.name === 'shed') renderShedScreen(inner, ctx);
   }
 
-  window.addEventListener('resize', () => {
+  function onViewportChange() {
     applyLayout();
     const top = stack[stack.length - 1];
     if (top.name !== 'trip') render();
-  });
+  }
+  window.addEventListener('resize', onViewportChange);
+  window.visualViewport?.addEventListener('resize', onViewportChange);
 
   if (desktopCheatsEnabled()) {
     window.addEventListener('keydown', (e) => {

@@ -1,5 +1,6 @@
 import { applyFactOutcome, maybeUnlock, pushRecentByRoute, pushRecentKey } from '../../game/mastery.js';
 import { awardCollectible } from '../../game/collectibles.js';
+import { MAX_ROUTE_ID } from '../../game/ops/contract.js';
 
 export const SAVE_KEY = 'tootTootTwenty.v1';
 
@@ -89,7 +90,7 @@ export function resetAll(state, keepMuted = true) {
 
 export function unlockAllRoutes(state) {
   state.mastery.adultUnlockedAll = true;
-  state.mastery.highestRouteUnlocked = 6;
+  state.mastery.highestRouteUnlocked = MAX_ROUTE_ID;
   return state;
 }
 

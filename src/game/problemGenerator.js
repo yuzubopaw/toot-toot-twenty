@@ -1,13 +1,19 @@
 import { emptyFact, isWeak, strength } from './mastery.js';
 import { makeTenFields } from './pack.js';
 import { mulberry32 } from './rng.js';
+import { generateModeTrip } from './ops/index.js';
 
 export const SPECIES_PAIRS = [
   ['duck', 'bunny'],
   ['puppy', 'kitten'],
+  ['pig', 'chick'],
   ['bear', 'frog'],
   ['fox', 'panda'],
   ['hedgehog', 'owl'],
+  ['mouse', 'squirrel'],
+  ['penguin', 'sheep'],
+  ['cow', 'elephant'],
+  ['giraffe', 'raccoon'],
 ];
 
 const FALLBACK = {
@@ -189,9 +195,11 @@ function decorate(a, b, routeId, rng, tripIndex, tripsCompleted) {
   const speciesA = a === 0 ? null : pair[0];
   const speciesB = b === 0 ? null : pair[1];
   return {
+    op: 'add',
     a,
     b,
     sum,
+    answer: sum,
     factKey: factKeyOf(a, b),
     routeId,
     strategy: pres.strategy,
@@ -213,10 +221,13 @@ function weightOf(a, b, routeId, mastery, recentKeys) {
   let w = 1;
   if (routeId === 1) {
     if (Math.min(a, b) === 1) w *= 2.2;
-    if (a === b) w *= 1.6;
+    if (a === b) w *= 1.8;
+    if (a + b === 5) w *= 1.9;
   } else {
     w *= 1 + 2 * (1 - strength(fact));
   }
+  if (routeId === 2 && a + b === 10 && a >= 1 && b >= 1) w *= 1.7;
+  if (routeId === 4 && (a === 10 || b === 10)) w *= 2.6;
   if (recentKeys.includes(key)) w *= 0.15;
   return w;
 }
@@ -285,6 +296,15 @@ export function nextProblem(args) {
 }
 
 export function generateTrip({ routeId, mastery, seed, recentKeys = [] }) {
+  if (routeId >= 7) {
+    const modeTrip = generateModeTrip(routeId, {
+      mastery,
+      seed,
+      recentKeys,
+      tripsCompleted: (mastery && mastery.tripsCompleted) || 0,
+    });
+    if (modeTrip && modeTrip.length) return modeTrip;
+  }
   const rng = typeof seed === 'function' ? seed : mulberry32(seed == null ? Date.now() : seed);
   const usedThisTrip = [];
   let zerosUsedThisTrip = 0;
@@ -306,11 +326,27 @@ export function generateTrip({ routeId, mastery, seed, recentKeys = [] }) {
     if (p.a === 0 || p.b === 0) zerosUsedThisTrip += 1;
   }
 
+  if (routeId === 1 && !problems.some((p) => p.a + p.b === 5)) {
+    const fives = legalPairs(1).filter(([a, b]) => a + b === 5);
+    const fresh = fives.filter(([a, b]) => !usedThisTrip.includes(factKeyOf(a, b)));
+    const pool = fresh.length ? fresh : fives;
+    const picked = pickWeighted(pool, () => 1, rng) || [2, 3];
+    problems[5] = decorate(picked[0], picked[1], routeId, rng, 5, tripsCompleted);
+  }
+
   if (routeId === 2 && !problems.some((p) => p.a + p.b === 10 && p.a >= 1 && p.b >= 1)) {
     const makeTens = legalPairs(2).filter(([a, b]) => a + b === 10 && a >= 1 && b >= 1);
     const fresh = makeTens.filter(([a, b]) => !usedThisTrip.includes(factKeyOf(a, b)));
     const pool = fresh.length ? fresh : makeTens;
     const picked = pickWeighted(pool, () => 1, rng) || [5, 5];
+    problems[5] = decorate(picked[0], picked[1], routeId, rng, 5, tripsCompleted);
+  }
+
+  if (routeId === 4 && !problems.some((p) => p.a === 10 || p.b === 10)) {
+    const teens = legalPairs(4).filter(([a, b]) => a === 10 || b === 10);
+    const fresh = teens.filter(([a, b]) => !usedThisTrip.includes(factKeyOf(a, b)));
+    const pool = fresh.length ? fresh : teens;
+    const picked = pickWeighted(pool, () => 1, rng) || [10, 3];
     problems[5] = decorate(picked[0], picked[1], routeId, rng, 5, tripsCompleted);
   }
 
