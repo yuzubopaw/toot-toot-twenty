@@ -4,6 +4,7 @@ import { engineSvg, renderSprite, renderStationImg, renderTrainImg } from '../..
 import { onActivate } from '../input/pointer.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
 import { burstCelebrate } from '../../ui/Celebrate.js';
+import { renderHomeButton } from '../../ui/HomeButton.js';
 
 const SKIP_MS = 1500;
 const PARADE_MS = 5500;
@@ -50,8 +51,8 @@ function renderPrize(item, stamp) {
 }
 
 export function renderParadeScreen(root, ctx, params = {}) {
-  const routeId = params.routeId || 1;
-  const toots = params.toots || 0;
+  const routeId = Number(params.routeId) > 0 ? Number(params.routeId) : 1;
+  const toots = Number(params.toots) > 0 ? Number(params.toots) : 0;
   const stars = starsFor(toots);
   const collection = ctx.save.collection;
   const item = latestCollectible(collection);
@@ -80,8 +81,7 @@ export function renderParadeScreen(root, ctx, params = {}) {
 
   const chrome = document.createElement('div');
   chrome.className = 'chrome';
-  const spacer = document.createElement('div');
-  chrome.appendChild(spacer);
+  chrome.appendChild(renderHomeButton({ onGoHome: () => go('title') }));
 
   const banner = document.createElement('div');
   banner.className = 'parade-banner';

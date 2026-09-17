@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { autoCombineDelayMs, JOIN_MS } from '../src/app/screens/TripScreen.js';
+import { ANSWER_LOCK_MS } from '../src/game/hints.js';
+import {
+  JOIN_MS,
+  PARTIAL_LOCK_MS,
+  answerLockMs,
+  autoCombineDelayMs,
+  remainingOrderDays,
+} from '../src/app/screens/TripScreen.js';
 
 describe('autoCombineDelayMs', () => {
   it('returns null when the child must use the lever', () => {
@@ -24,3 +31,21 @@ describe('autoCombineDelayMs', () => {
     expect(autoCombineDelayMs({ requireCombine: false }, { autoCombineAt: 500 }, false, 1000)).toBe(0);
   });
 });
+
+describe('order tap lock and remaining auto-count', () => {
+  it('does not lock the next day after a partial sequence tap', () => {
+    expect(PARTIAL_LOCK_MS).toBeLessThan(ANSWER_LOCK_MS);
+    expect(answerLockMs({ partial: true, ignored: false })).toBe(PARTIAL_LOCK_MS);
+    expect(answerLockMs({ correct: true, partial: false })).toBe(ANSWER_LOCK_MS);
+    expect(answerLockMs({ ignored: true })).toBe(0);
+  });
+
+  it('auto-counts only the days not yet boarded', () => {
+    const problem = { op: 'order', sequence: [4, 5, 6] };
+    expect(remainingOrderDays(problem, { placed: [] })).toEqual([4, 5, 6]);
+    expect(remainingOrderDays(problem, { placed: [4] })).toEqual([5, 6]);
+    expect(remainingOrderDays(problem, { placed: [4, 5] })).toEqual([6]);
+    expect(remainingOrderDays({ op: 'count', answer: 12 }, { placed: [] })).toEqual([]);
+  });
+});
+

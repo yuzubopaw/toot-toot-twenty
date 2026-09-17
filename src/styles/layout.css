@@ -405,7 +405,13 @@
 }
 
 .screen > .chrome {
-  z-index: 8;
+  z-index: 20;
+}
+
+.screen > .overlay,
+.screen > .celebrate-layer {
+  z-index: 40;
+  pointer-events: auto;
 }
 
 .screen > .equation,
@@ -436,6 +442,9 @@
 }
 
 .chrome {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -450,6 +459,7 @@
   height: var(--hit-chrome);
   min-width: var(--hit-chrome);
   min-height: var(--hit-chrome);
+  flex: 0 0 auto;
   border-radius: 18px;
   background: var(--color-cream);
   box-shadow: var(--shadow-soft);
@@ -457,6 +467,33 @@
   display: grid;
   place-items: center;
   border: var(--outline);
+}
+
+.chrome-btn svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+  pointer-events: none;
+}
+
+.chrome-home:last-child {
+  margin-left: auto;
+}
+
+.chrome-end {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.chrome > .hint-line {
+  min-width: 0;
+  position: relative;
+  z-index: 0;
 }
 
 .chrome-btn:active {
@@ -572,11 +609,18 @@
   justify-content: center;
   gap: 8px;
   padding: 4px 8px;
+  width: 100%;
+  overflow: auto;
+}
+
+.trip-problem:has(.frame-row.is-count) {
+  overflow: auto;
 }
 
 .frame-row.is-count .frame.size-10 {
   width: min(31%, 280px);
-  min-width: 188px;
+  min-width: min(188px, 46%);
+  flex: 0 1 auto;
   gap: 5px;
   padding: 12px 8px 10px;
   grid-template-columns: repeat(5, minmax(28px, 48px));
@@ -592,11 +636,29 @@
 
 [data-layout="stacked"] .frame-row.is-count {
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 4px;
 }
 
 [data-layout="stacked"] .frame-row.is-count .frame.size-10 {
-  width: min(48%, 200px);
-  min-width: 148px;
+  width: calc(50% - 6px);
+  min-width: 0;
+  max-width: calc(50% - 6px);
+  flex: 0 1 calc(50% - 6px);
+  padding: 8px 6px 6px;
+  gap: 4px;
+  grid-template-columns: repeat(5, minmax(18px, 1fr));
+  grid-template-rows: repeat(2, minmax(18px, 36px));
+}
+
+[data-layout="stacked"] .frame-row.count-frames-4 .frame.size-10,
+[data-layout="stacked"] .frame-row.count-frames-5 .frame.size-10 {
+  width: calc(33.33% - 6px);
+  max-width: calc(33.33% - 6px);
+  flex-basis: calc(33.33% - 6px);
+  grid-template-columns: repeat(5, minmax(14px, 1fr));
+  grid-template-rows: repeat(2, minmax(14px, 28px));
 }
 
 [data-layout="stacked"] .frame-row.is-joining .frame:first-child {

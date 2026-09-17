@@ -47,7 +47,11 @@ export function renderTitleScreen(root, ctx) {
   });
   const hint = document.createElement('div');
   hint.className = 'hint-line';
-  hint.textContent = 'Sunny Station';
+  hint.append('Sunny Station');
+  const modes = document.createElement('span');
+  modes.className = 'title-modes';
+  modes.textContent = 'Add • Count • Order';
+  hint.appendChild(modes);
   const shed = document.createElement('button');
   shed.className = 'chrome-btn';
   shed.setAttribute('aria-label', 'Engine Shed');

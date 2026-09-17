@@ -1,6 +1,13 @@
 import { persist, resetAll, unlockAllRoutes } from '../storage/save.js';
 import { onActivate } from '../input/pointer.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
+import { renderHomeButton } from '../../ui/HomeButton.js';
+
+export const HOLD_SUN_MS = 3000;
+
+export function holdSunReady(downAt, upAt, ms = HOLD_SUN_MS) {
+  return Boolean(downAt) && upAt - downAt >= ms;
+}
 
 export function renderSettingsScreen(root, ctx) {
   root.innerHTML = '';
@@ -12,12 +19,20 @@ export function renderSettingsScreen(root, ctx) {
   chrome.className = 'chrome';
   const spacer = document.createElement('div');
   chrome.appendChild(spacer);
+  const end = document.createElement('div');
+  end.className = 'chrome-end';
+  end.appendChild(
+    renderHomeButton({
+      onGoHome: () => ctx.show('title'),
+    }),
+  );
   const close = document.createElement('button');
   close.className = 'chrome-btn';
   close.setAttribute('aria-label', 'Close');
   close.textContent = '✓';
   onActivate(close, () => ctx.close());
-  chrome.appendChild(close);
+  end.appendChild(close);
+  chrome.appendChild(end);
 
   const list = document.createElement('div');
   list.className = 'settings-list';
@@ -56,21 +71,59 @@ export function renderSettingsScreen(root, ctx) {
   sun.className = 'sun-hold';
   sun.setAttribute('aria-label', 'Adult options');
   sun.innerHTML = `<span class="ring"></span>`;
-  let holdTimer = null;
-  sun.addEventListener('pointerdown', () => {
+  let holdTimer = 0;
+  let holdPointer = 0;
+  let downAt = 0;
+
+  function stopHold() {
+    sun.classList.remove('is-holding');
+    if (holdTimer) {
+      window.clearTimeout(holdTimer);
+      holdTimer = 0;
+    }
+  }
+
+  sun.addEventListener('pointerdown', (e) => {
+    if (e.button != null && e.button !== 0) return;
+    e.preventDefault();
+    try {
+      sun.setPointerCapture(e.pointerId);
+    } catch {
+      /* jsdom / older Safari */
+    }
+    holdPointer = e.pointerId;
+    downAt = Date.now();
+    stopHold();
     sun.classList.add('is-holding');
     holdTimer = window.setTimeout(() => {
-      sun.classList.remove('is-holding');
-      showAdult();
-    }, 3000);
+      holdTimer = 0;
+    }, HOLD_SUN_MS);
   });
-  const cancel = () => {
-    sun.classList.remove('is-holding');
-    if (holdTimer) window.clearTimeout(holdTimer);
-  };
-  sun.addEventListener('pointerup', cancel);
-  sun.addEventListener('pointercancel', cancel);
-  sun.addEventListener('pointerleave', cancel);
+  sun.addEventListener('pointerup', () => {
+    const ready = holdSunReady(downAt, Date.now());
+    downAt = 0;
+    stopHold();
+    try {
+      if (holdPointer) sun.releasePointerCapture(holdPointer);
+    } catch {
+      /* already released */
+    }
+    holdPointer = 0;
+    if (ready) showAdult();
+  });
+  sun.addEventListener('pointercancel', () => {
+    downAt = 0;
+    holdPointer = 0;
+    stopHold();
+  });
+  sun.addEventListener('pointerleave', () => {
+    if (holdPointer && typeof sun.hasPointerCapture === 'function' && sun.hasPointerCapture(holdPointer)) {
+      return;
+    }
+    downAt = 0;
+    stopHold();
+  });
+  sun.addEventListener('contextmenu', (e) => e.preventDefault());
   list.appendChild(sun);
 
   function showAdult() {

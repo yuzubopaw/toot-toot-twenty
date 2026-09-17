@@ -2,6 +2,7 @@ import { COLLECTIBLES } from '../../game/collectibles.js';
 import { renderSprite, engineSvg } from '../../ui/Sprite.js';
 import { onActivate } from '../input/pointer.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
+import { renderHomeButton } from '../../ui/HomeButton.js';
 
 export function renderShedScreen(root, ctx) {
   root.innerHTML = '';
@@ -14,12 +15,20 @@ export function renderShedScreen(root, ctx) {
   title.className = 'hint-line';
   title.textContent = 'Engine Shed';
   chrome.appendChild(title);
+  const end = document.createElement('div');
+  end.className = 'chrome-end';
+  end.appendChild(
+    renderHomeButton({
+      onGoHome: () => ctx.show('title'),
+    }),
+  );
   const close = document.createElement('button');
   close.className = 'chrome-btn';
   close.setAttribute('aria-label', 'Close');
   close.textContent = '✓';
   onActivate(close, () => ctx.close());
-  chrome.appendChild(close);
+  end.appendChild(close);
+  chrome.appendChild(end);
 
   const row = document.createElement('div');
   row.className = 'shed';

@@ -5,6 +5,7 @@ import { recordCorrect } from '../storage/save.js';
 import { useStrip, viewportSize } from '../layoutMode.js';
 import { features } from '../features.js';
 import { renderMuteButton } from '../../ui/MuteButton.js';
+import { renderHomeButton } from '../../ui/HomeButton.js';
 import { renderFrame, pulseCell } from '../../ui/Frame.js';
 import { renderNumberChoices } from '../../ui/NumberChoices.js';
 import { renderOrderLine } from '../../ui/OrderLine.js';
@@ -13,15 +14,37 @@ import { onActivate } from '../input/pointer.js';
 import { renderJourney, setJourneyProgress } from '../../ui/Journey.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
 import { burstCelebrate } from '../../ui/Celebrate.js';
-import { renderStationImg, renderTrainImg } from '../../ui/Sprite.js';
+import { renderTrainImg } from '../../ui/Sprite.js';
 import { renderCoupleLever, wiggleLever } from '../../ui/CoupleLever.js';
 import { renderGroup } from '../../ui/Group.js';
 
 const CHUG_MS = CELEBRATE_MS;
 export const JOIN_MS = 500;
+export const PARTIAL_LOCK_MS = 80;
+
+/** Home leave / skip-reward always goes to title, not the map. */
+export function tripHomePlan(session) {
+  return {
+    confirm: !session?.tripDone,
+    screen: 'title',
+  };
+}
 
 function isJoinAdd(problem) {
   return Boolean(problem) && (!problem.op || problem.op === 'add');
+}
+
+/** Ignore double-taps on a finished answer; let the next order-day be tapped quickly. */
+export function answerLockMs(result) {
+  if (!result || result.ignored) return 0;
+  if (result.partial) return PARTIAL_LOCK_MS;
+  return ANSWER_LOCK_MS;
+}
+
+export function remainingOrderDays(problem, session) {
+  if (!problem || problem.op !== 'order' || !Array.isArray(problem.sequence)) return [];
+  const start = session && session.placed ? session.placed.length : 0;
+  return problem.sequence.slice(start);
 }
 
 /** ms until auto-combine, or null if the child must tap the lever. */
@@ -67,8 +90,8 @@ export function renderTripScreen(root, ctx, params) {
     });
   }
 
-  function goMap() {
-    ctx.show('map');
+  function goHome() {
+    ctx.show(tripHomePlan(session).screen);
   }
 
   function clearCombineWait() {
@@ -81,27 +104,35 @@ export function renderTripScreen(root, ctx, params) {
   }
 
   function confirmHome() {
-    if (session.tripDone) {
-      goMap();
+    const plan = tripHomePlan(session);
+    if (!plan.confirm) {
+      goHome();
       return;
     }
+    const screen = root.querySelector('.screen');
+    if (!screen || screen.querySelector('.overlay')) return;
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
     const card = document.createElement('div');
     card.className = 'card';
     const stay = document.createElement('button');
-    stay.className = 'play-engine confirm-stay';
+    stay.type = 'button';
+    stay.className = 'confirm-stay';
     stay.setAttribute('aria-label', 'Keep playing');
     stay.appendChild(renderTrainImg('train-art'));
+    const stayLabel = document.createElement('span');
+    stayLabel.textContent = 'Keep playing';
+    stay.appendChild(stayLabel);
     onActivate(stay, () => overlay.remove());
-    const leave = document.createElement('button');
-    leave.className = 'parade-stations confirm-leave';
-    leave.setAttribute('aria-label', 'Stations');
-    leave.appendChild(renderStationImg('station-art'));
-    onActivate(leave, goMap);
+    const leave = document.createElement('div');
+    leave.className = 'confirm-leave';
+    leave.appendChild(renderHomeButton({ onGoHome: goHome, label: 'Home' }));
+    const leaveLabel = document.createElement('span');
+    leaveLabel.textContent = 'Home';
+    leave.appendChild(leaveLabel);
     card.append(stay, leave);
     overlay.appendChild(card);
-    root.querySelector('.screen').appendChild(overlay);
+    screen.appendChild(overlay);
   }
 
   function pulseChoice(value) {
@@ -114,10 +145,9 @@ export function renderTripScreen(root, ctx, params) {
   async function autoCount(problem) {
     counting = true;
     const ms = ctx.reduceMotion() ? AUTO_COUNT_REDUCED_MS : AUTO_COUNT_MS;
-    if (problem && problem.op === 'order' && Array.isArray(problem.sequence)) {
-      const start = (session.placed || []).length;
-      for (let i = start; i < problem.sequence.length; i += 1) {
-        const n = problem.sequence[i];
+    const rest = remainingOrderDays(problem, session);
+    if (rest.length) {
+      for (const n of rest) {
         pulseChoice(n);
         ctx.audio.speakNumber(n, 'count');
         await new Promise((r) => window.setTimeout(r, ms));
@@ -241,6 +271,7 @@ export function renderTripScreen(root, ctx, params) {
   }
 
   function wireCountTaps(groupEl, startCount) {
+    if (!groupEl || groupEl.classList.contains('is-empty')) return;
     [...groupEl.children].forEach((child, i) => {
       const n = startCount + i;
       let cell = child;
@@ -343,12 +374,12 @@ export function renderTripScreen(root, ctx, params) {
 
   async function onChoose(n) {
     if (Date.now() < lockUntil || counting) return;
-    lockUntil = Date.now() + ANSWER_LOCK_MS;
     const result = applyAnswer(session, n);
     if (result.ignored) {
       nudgeLocked();
       return;
     }
+    lockUntil = Date.now() + answerLockMs(result);
     if (result.partial) {
       dimmed.delete(n);
       ctx.audio.playSfx('ticket-punch');
@@ -407,14 +438,7 @@ export function renderTripScreen(root, ctx, params) {
     chrome.className = 'chrome';
     muteHost = document.createElement('div');
     chrome.appendChild(muteHost);
-    const spacer = document.createElement('div');
-    chrome.appendChild(spacer);
-    const home = document.createElement('button');
-    home.className = 'chrome-btn';
-    home.setAttribute('aria-label', 'Home');
-    home.textContent = '⌂';
-    onActivate(home, confirmHome);
-    chrome.appendChild(home);
+    chrome.appendChild(renderHomeButton({ onGoHome: confirmHome }));
 
     eqEl = document.createElement('div');
     eqEl.className = 'equation';
@@ -440,10 +464,7 @@ export function renderTripScreen(root, ctx, params) {
     muteHost.replaceChildren(
       renderMuteButton({
         muted: ctx.save.settings.muted,
-        onToggle: () => {
-          ctx.toggleMute();
-          paintProblem();
-        },
+        onToggle: () => ctx.toggleMute(),
       }),
     );
     paintEquation(problem);
@@ -475,7 +496,9 @@ export function renderTripScreen(root, ctx, params) {
     } else {
       const row = document.createElement('div');
       const frameCount = Math.max(1, problem.frameCount || 1);
-      row.className = frameCount > 2 ? 'frame-row is-count' : 'frame-row';
+      const countLayout = problem.op === 'count' && frameCount > 1;
+      row.className =
+        countLayout || frameCount > 2 ? `frame-row is-count count-frames-${frameCount}` : 'frame-row';
       const emptySeats = problem.op === 'missing' || problem.op === 'bond' || problem.op === 'count';
       for (let id = 1; id <= frameCount; id += 1) {
         row.appendChild(

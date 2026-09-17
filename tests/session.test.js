@@ -63,6 +63,18 @@ describe('session', () => {
     expect(s.status).toBe('celebrating');
   });
 
+  it('keeps boarded days if the child retaps one already in the line', () => {
+    const s = startTrip(13, mastery, 23);
+    applyCombine(s);
+    const seq = currentProblem(s).sequence;
+    applyAnswer(s, seq[0]);
+    const again = applyAnswer(s, seq[0]);
+    expect(again.ignored).toBe(true);
+    expect(s.placed).toEqual([seq[0]]);
+    expect(s.status).not.toBe('celebrating');
+  });
+
+
   it('hint ladder then 6th correct sets tripDone without advance', () => {
     const s = startTrip(1, mastery, 11);
     for (let i = 0; i < 5; i++) {
