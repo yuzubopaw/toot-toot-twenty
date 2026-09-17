@@ -69,4 +69,18 @@ describe('save', () => {
     expect(s.settings.muted).toBe(true);
     expect(s.mastery.tripsCompleted).toBe(0);
   });
+
+  it('reset clears unlocks so the map starts at station 1 again', () => {
+    const s = defaultState();
+    s.settings.muted = true;
+    s.mastery.adultUnlockedAll = true;
+    s.mastery.highestRouteUnlocked = 13;
+    s.mastery.tripsCompleted = 9;
+    s.collection.unlockedIds = ['duck'];
+    resetAll(s, true);
+    expect(s.settings.muted).toBe(true);
+    expect(s.mastery.adultUnlockedAll).toBe(false);
+    expect(s.mastery.highestRouteUnlocked).toBe(1);
+    expect(s.collection.unlockedIds).toEqual([]);
+  });
 });

@@ -8,6 +8,8 @@ import {
   strength,
   unlockMet,
 } from '../src/game/mastery.js';
+import { defaultState } from '../src/app/storage/save.js';
+import { STATIONS, stationLocked } from '../src/app/screens/MapScreen.js';
 
 describe('FactStats table', () => {
   it('first-try hit', () => {
@@ -77,31 +79,68 @@ describe('unlockMet', () => {
     expect(maybeUnlock(save)).toBe(13);
   });
 
-  it('Tally Track unlocks after Ten Bond Bay in the extra-mode chain', () => {
-    const save = {
-      mastery: {
-        adultUnlockedAll: false,
-        highestRouteUnlocked: 11,
-        tripsCompleted: 8,
-        tripsByRoute: { 10: 1 },
-        recentByRoute: {},
-      },
-    };
-    expect(unlockMet(save, 11)).toBe(true);
-    expect(maybeUnlock(save)).toBe(12);
+  it('Tally Track and Date Depot are available at start', () => {
+    const mastery = defaultState().mastery;
+    expect(STATIONS.slice(0, 3).map((s) => s.name)).toEqual([
+      'Garden Siding',
+      'Tally Track',
+      'Date Depot',
+    ]);
+    expect(stationLocked({ id: 1 }, mastery)).toBe(false);
+    expect(stationLocked({ id: 12 }, mastery)).toBe(false);
+    expect(stationLocked({ id: 13 }, mastery)).toBe(false);
+    for (const id of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
+      expect(stationLocked({ id }, mastery)).toBe(true);
+    }
+    expect(maybeUnlock({ mastery: { ...mastery } })).toBe(1);
   });
 
-  it('Date Depot unlocks after Mix-Up Main in the extra-mode chain', () => {
+  it('addition routes 1–6 still need 3 trips and 10 of 12', () => {
+    const save = {
+      mastery: {
+        tripsByRoute: { 1: 2 },
+        recentByRoute: {
+          1: Array.from({ length: 12 }, () => ({ triesUntilCorrect: 1 })),
+        },
+        adultUnlockedAll: false,
+        highestRouteUnlocked: 1,
+      },
+    };
+    expect(unlockMet(save, 1)).toBe(false);
+    expect(stationLocked({ id: 2 }, save.mastery)).toBe(true);
+    save.mastery.tripsByRoute[1] = 3;
+    expect(unlockMet(save, 1)).toBe(true);
+    expect(maybeUnlock(save)).toBe(2);
+    expect(stationLocked({ id: 2 }, save.mastery)).toBe(false);
+    expect(stationLocked({ id: 3 }, save.mastery)).toBe(true);
+  });
+
+  it('extra ops 7–11 stay sequential', () => {
     const save = {
       mastery: {
         adultUnlockedAll: false,
-        highestRouteUnlocked: 12,
-        tripsCompleted: 9,
-        tripsByRoute: { 11: 1 },
+        highestRouteUnlocked: 7,
+        tripsCompleted: 1,
+        tripsByRoute: {},
         recentByRoute: {},
       },
     };
-    expect(unlockMet(save, 12)).toBe(true);
-    expect(maybeUnlock(save)).toBe(13);
+    expect(stationLocked({ id: 7 }, save.mastery)).toBe(false);
+    expect(stationLocked({ id: 8 }, save.mastery)).toBe(true);
+    expect(unlockMet(save, 7)).toBe(true);
+    expect(maybeUnlock(save)).toBe(8);
+    expect(stationLocked({ id: 8 }, save.mastery)).toBe(false);
+    expect(stationLocked({ id: 9 }, save.mastery)).toBe(true);
+
+    save.mastery.highestRouteUnlocked = 10;
+    save.mastery.tripsByRoute = { 9: 1 };
+    expect(maybeUnlock(save)).toBe(11);
+    expect(stationLocked({ id: 11 }, save.mastery)).toBe(false);
+
+    save.mastery.highestRouteUnlocked = 11;
+    save.mastery.tripsByRoute = {};
+    expect(maybeUnlock(save)).toBe(11);
+    expect(stationLocked({ id: 12 }, save.mastery)).toBe(false);
+    expect(stationLocked({ id: 13 }, save.mastery)).toBe(false);
   });
 });

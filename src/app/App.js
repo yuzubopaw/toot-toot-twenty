@@ -2,6 +2,7 @@ import { load, persist } from './storage/save.js';
 import { computeLayout, viewportSize } from './layoutMode.js';
 import { createAudioManager } from './audio/AudioManager.js';
 import { desktopCheatsEnabled } from './input/pointer.js';
+import { applyMuteButtonState } from '../ui/MuteButton.js';
 import { renderTitleScreen } from './screens/TitleScreen.js';
 import { renderMapScreen } from './screens/MapScreen.js';
 import { renderSettingsScreen } from './screens/SettingsScreen.js';
@@ -44,6 +45,11 @@ export function boot(appEl) {
     }
   }
 
+  function syncMuteButtons() {
+    const muted = Boolean(save.settings.muted);
+    appEl.querySelectorAll('[data-mute-btn]').forEach((btn) => applyMuteButtonState(btn, muted));
+  }
+
   function toggleMute() {
     save.settings.muted = !save.settings.muted;
     persist(save);
@@ -51,9 +57,11 @@ export function boot(appEl) {
     ctx.audio.stopBed?.();
     const top = stack[stack.length - 1];
     if (top.name !== 'trip') render();
+    else syncMuteButtons();
   }
 
   function show(name, params = {}) {
+    ctx.audio.unlock?.().catch(() => {});
     if (name === 'title') stack.splice(0, stack.length, { name, params });
     else stack.push({ name, params });
     render();

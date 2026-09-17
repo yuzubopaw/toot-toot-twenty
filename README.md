@@ -2,7 +2,7 @@
 
 A colorful kindergarten math game for 5-year-olds. Play in **iPad Safari** or a desktop browser.
 
-Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together. Extra stations unlock along the line, including **Tally Track** (count up to 50) and **Date Depot** (put days in order up to 31).
+Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together. The first map already has **Garden Siding** (add), **Tally Track** (count up to 50), and **Date Depot** (put days in order up to 31). Extra addition stations unlock along the line.
 
 ## Play on the web
 
@@ -35,8 +35,8 @@ This LAN URL is for your household only. Vite is not password-protected.
 ## How to play
 
 1. Tap **Tap to play**.
-2. Tap Garden Siding (the first station).
-3. Tap the green **Toot** lever to couple the trains.
+2. The first map shows three open stations: **Garden Siding** (add), **Tally Track** (count), and **Date Depot** (order days). Tap one.
+3. On Garden Siding, tap the green **Toot** lever to couple the trains.
 4. Count the animals if you like, then tap the big number.
 5. Six problems make a trip. Then a parade!
 
