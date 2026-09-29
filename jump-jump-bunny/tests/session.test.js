@@ -51,6 +51,14 @@ describe('counting 1 to 10', () => {
     }
   });
 
+  it('gives hop-to one empty pad for each count in the number', () => {
+    const problem = nextProblem('countOut', [], mulberry32(4), null);
+    expect(problem.bunnyCount).toBe(problem.target);
+    expect(problem.padCount).toBe(problem.target);
+    expect(problem.target).toBeGreaterThanOrEqual(1);
+    expect(problem.target).toBeLessThanOrEqual(5);
+  });
+
   it('asks what comes next as the count from 1', () => {
     const problem = nextProblem('next', [], mulberry32(1), null);
     expect(problem.shown).toEqual(Array.from({ length: problem.target - 1 }, (_, i) => i + 1));
@@ -108,16 +116,17 @@ describe('hop then answer', () => {
     expect(hit.triesUntilCorrect).toBe(4);
   });
 
-  it('finishes the trip on the fifth correct hop-to', () => {
-    const problem = { mode: 'countOut', target: 2, bunnyCount: 4, choices: [1, 2, 3] };
+  it('solves hop-to when the hops match the number', () => {
+    const problem = { mode: 'countOut', target: 2, bunnyCount: 2, padCount: 2, choices: [1, 2, 3] };
     let round = freshRound(problem, 4);
     expect(submitCountOut(round).ignored).toBe(true);
-    round = hopOnce(round).round;
-    const early = submitCountOut(round);
-    expect(early.correct).toBe(false);
-    expect(early.round.hopped).toBe(0);
-    round = hopOnce(hopOnce(early.round).round).round;
-    const hit = submitCountOut(round);
+    const first = hopOnce(round);
+    expect(first.count).toBe(1);
+    expect(submitCountOut(first.round).correct).toBe(false);
+    const second = hopOnce(first.round);
+    expect(second.round.hopped).toBe(2);
+    expect(hopOnce(second.round).hoppedNow).toBe(false);
+    const hit = submitCountOut(second.round);
     expect(hit.correct).toBe(true);
     expect(hit.tripDone).toBe(true);
   });

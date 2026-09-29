@@ -75,8 +75,8 @@ export function createAudioManager({ getSettings, captionEl }) {
       captionEl.classList.remove('is-on');
       captionEl.textContent = '';
     },
-    speakNumber(n, ms = 500) {
-      showCaption(n, ms);
+    speakNumber(n, ms = 500, options = {}) {
+      if (options.caption !== false) showCaption(n, ms);
       if (!getSettings()?.voice) return;
       tone({ freq: numberChimeFreq(n), dur: 0.22, peak: 0.14, type: 'sine' });
     },
