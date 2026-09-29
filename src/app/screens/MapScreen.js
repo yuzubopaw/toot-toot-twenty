@@ -1,5 +1,7 @@
 import { renderMuteButton } from '../../ui/MuteButton.js';
 import { renderHomeButton } from '../../ui/HomeButton.js';
+import { renderGateButton } from '../../ui/GateButton.js';
+import { bundleParentHref } from '../gate.js';
 import { onActivate } from '../input/pointer.js';
 import { renderJourney } from '../../ui/Journey.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
@@ -66,6 +68,8 @@ export function renderMapScreen(root, ctx) {
   chrome.appendChild(title);
   const end = document.createElement('div');
   end.className = 'chrome-end';
+  const gateHref = bundleParentHref(location.pathname);
+  if (gateHref) end.appendChild(renderGateButton(gateHref));
   end.appendChild(
     renderHomeButton({
       onGoHome: () => ctx.show('title'),
