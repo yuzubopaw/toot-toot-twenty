@@ -52,7 +52,7 @@ describe('layout and gate', () => {
   });
 
   it('links back to the chooser from the bundled path', () => {
-    expect(bundleParentHref('/toot-toot-and-jump-jump/jjb/')).toBe('../');
+    expect(bundleParentHref('/yuzubomath/jjb/')).toBe('../');
     expect(bundleParentHref('/')).toBeNull();
   });
 });
