@@ -141,6 +141,7 @@ export function renderPlayScreen(root, ctx, params) {
       }
       if (i < view.hopped) {
         pad.classList.add('is-up');
+        if (i === view.hopped - 1) pad.classList.add('is-jumping');
         const badge = document.createElement('span');
         badge.className = 'hop-num';
         badge.textContent = String(i + 1);
@@ -178,15 +179,16 @@ export function renderPlayScreen(root, ctx, params) {
         scarf: SCARVES[shown.length % SCARVES.length],
         empty: !landed,
         bunny: landed,
+        jump: landed && !view.solved,
         saying: view.saying === view.problem.target,
       }),
     );
     return grid;
   }
 
-  function stone({ n, scarf, empty = false, bunny = true, saying = false }) {
+  function stone({ n, scarf, empty = false, bunny = true, saying = false, jump = false }) {
     const cell = document.createElement('div');
-    cell.className = `stone${empty ? ' is-empty' : ' is-filled'}${saying ? ' is-saying' : ''}`;
+    cell.className = `stone${empty ? ' is-empty' : ' is-filled'}${saying ? ' is-saying' : ''}${jump ? ' is-jumping' : ''}`;
     if (bunny && !empty) cell.innerHTML = bunnyMarkup(scarf);
     if (n != null) {
       const num = document.createElement('span');

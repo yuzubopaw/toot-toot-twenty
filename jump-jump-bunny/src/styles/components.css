@@ -24,8 +24,9 @@
 }
 
 .play-bunny {
+  position: relative;
   width: min(440px, 86vw);
-  min-height: 168px;
+  min-height: 0;
   border-radius: 32px;
   border: 5px solid var(--color-ink);
   background: linear-gradient(180deg, #fff 0%, var(--color-cream) 70%);
@@ -34,13 +35,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 12px 12px 14px;
-  gap: 4px;
+  padding: 8px 12px 12px;
+  gap: 2px;
+  --jump-time: 1.15s;
 }
 
 .play-bunny .hero-bunny {
-  width: min(180px, 40vw);
-  animation: hero-hop 1.1s ease-in-out infinite;
+  height: min(320px, 40vh);
+  width: auto;
+  display: flex;
+  align-items: flex-end;
 }
 
 .play-label {
@@ -56,10 +60,20 @@
   transform: translateY(4px);
 }
 
-@keyframes hero-hop {
-  0%, 100% { transform: translateY(0); }
-  45% { transform: translateY(-18px) rotate(-4deg); }
+.play-bunny::before,
+.play-bunny::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #ffe56a;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: spark-pop var(--jump-time) ease-in-out infinite;
+  pointer-events: none;
 }
+
+.play-bunny::before { left: 16%; top: 22%; }
+.play-bunny::after { right: 14%; top: 16%; animation-delay: 0.12s; }
 
 .map-grid {
   flex: 1;
@@ -93,9 +107,17 @@
   justify-content: center;
 }
 
-.map-card .mini-row .bunny-svg {
-  width: 54px;
+.map-card .mini-row .bunny-hop {
+  width: 48px;
   height: auto;
+}
+
+.map-card .mini-row .bunny-hop:nth-child(2) {
+  animation-delay: 0.22s;
+}
+
+.map-card .mini-row .bunny-hop:nth-child(3) {
+  animation-delay: 0.44s;
 }
 
 .map-card .stone-pip {
@@ -176,25 +198,42 @@
 }
 
 .bunny {
-  width: 78%;
-  height: auto;
+  width: auto;
+  height: 94%;
   padding: 0;
   background: none;
   border: none;
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.bunny-svg {
-  width: 100%;
-  height: auto;
+.bunny-hop {
   display: block;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 280 / 546;
+  background: url("../assets/bunny-hop.webp") 0 0 / 900% 100% no-repeat;
   pointer-events: none;
 }
 
-.pad.is-up .bunny {
-  animation: hop-pop 0.42s ease;
-  transform: translateY(-34%);
+.hero-bunny .bunny-hop,
+.map-card .bunny-hop,
+.parade-bunny .bunny-hop,
+.confirm-stay .bunny-hop,
+.parade-again .bunny-hop {
+  animation: bunny-hop 1.15s linear infinite;
+}
+
+.pad.is-jumping .bunny-hop,
+.stone.is-jumping .bunny-hop {
+  animation: bunny-hop 1.05s linear 1 forwards;
+}
+
+.reduce-motion .bunny-hop {
+  animation-name: none !important;
 }
 
 .pad.is-up .lily {
@@ -222,10 +261,23 @@
   animation: pad-next 0.9s ease-in-out infinite;
 }
 
-@keyframes hop-pop {
-  0% { transform: translateY(8%); }
-  45% { transform: translateY(-42%) rotate(-8deg); }
-  100% { transform: translateY(-34%); }
+/* Nine cells. Percents are i/8 so each cell lines up at background-size 900%. */
+@keyframes bunny-hop {
+  0%, 11.11% { background-position: 0% 0; }
+  11.12%, 22.22% { background-position: 12.5% 0; }
+  22.23%, 33.33% { background-position: 25% 0; }
+  33.34%, 44.44% { background-position: 37.5% 0; }
+  44.45%, 55.55% { background-position: 50% 0; }
+  55.56%, 66.66% { background-position: 62.5% 0; }
+  66.67%, 77.77% { background-position: 75% 0; }
+  77.78%, 88.88% { background-position: 87.5% 0; }
+  88.89%, 100% { background-position: 100% 0; }
+}
+
+@keyframes spark-pop {
+  0%, 28% { opacity: 0; transform: scale(0.3); }
+  46% { opacity: 1; transform: scale(1); }
+  72%, 100% { opacity: 0; transform: scale(0.4) translateY(10px); }
 }
 
 @keyframes pad-next {
@@ -265,9 +317,8 @@
   z-index: 2;
 }
 
-.stone .bunny-svg {
-  width: 70%;
-  margin-top: -8px;
+.stone .bunny-hop {
+  height: 92%;
 }
 
 .hop-btn,
@@ -361,9 +412,10 @@
   padding: 8px;
 }
 
-.confirm-stay .bunny-svg,
-.parade-again .bunny-svg {
-  width: 72px;
+.confirm-stay .bunny-hop,
+.parade-again .bunny-hop {
+  width: 52px;
+  height: auto;
 }
 
 .parade-track {
@@ -375,20 +427,24 @@
 
 .parade-bunny {
   position: absolute;
-  bottom: 18px;
-  width: 90px;
+  bottom: 0;
+  width: 72px;
   animation: parade 3.4s linear infinite;
 }
 
-.parade-bunny:nth-child(2) { animation-delay: 0.4s; width: 76px; }
+.parade-bunny:nth-child(2) { animation-delay: 0.4s; width: 64px; }
 .parade-bunny:nth-child(3) { animation-delay: 0.9s; }
-.parade-bunny:nth-child(4) { animation-delay: 1.3s; width: 70px; }
+.parade-bunny:nth-child(4) { animation-delay: 1.3s; width: 60px; }
 .parade-bunny:nth-child(5) { animation-delay: 1.8s; }
 
+.parade-bunny .bunny-hop {
+  width: 100%;
+  height: auto;
+}
+
 @keyframes parade {
-  0% { left: -20%; transform: translateY(0); }
-  40% { transform: translateY(-28px); }
-  100% { left: 110%; transform: translateY(0); }
+  0% { left: -22%; }
+  100% { left: 110%; }
 }
 
 .sparkle-note {
