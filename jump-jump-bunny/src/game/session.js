@@ -55,7 +55,7 @@ export function nextProblem(mode, recent, rng, previousTarget) {
   };
   if (mode === 'howMany') {
     problem.bunnyCount = target;
-    problem.padCount = target <= 5 ? 5 : 10;
+    problem.padCount = target;
   } else if (mode === 'countOut') {
     problem.bunnyCount = target;
     problem.padCount = target;
@@ -83,7 +83,7 @@ export function freshRound(problem, index) {
     problem,
     index,
     hopped: 0,
-    ready: false,
+    ready: problem.mode === 'howMany',
     misses: 0,
     hintLevel: 0,
     solved: false,
@@ -127,7 +127,7 @@ function withHint(round, hintLevel, wrongPicks) {
     misses: round.misses + 1,
     hintLevel,
     hopped: 0,
-    ready: false,
+    ready: round.problem.mode === 'howMany',
     revealed: hintLevel >= 3,
     wrongPicks,
     locked: false,

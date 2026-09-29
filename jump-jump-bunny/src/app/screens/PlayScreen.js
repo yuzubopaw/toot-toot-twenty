@@ -204,19 +204,14 @@ export function renderPlayScreen(root, ctx, params) {
   function meadow(view) {
     const grid = document.createElement('div');
     grid.className = 'meadow';
-    const pads = view.problem.padCount;
     const bunnies = view.problem.bunnyCount;
-    for (let i = 0; i < pads; i += 1) {
+    grid.style.setProperty('--cols', String(Math.min(5, bunnies)));
+    for (let i = 0; i < bunnies; i += 1) {
       const pad = document.createElement('div');
       pad.className = 'pad';
       const lily = document.createElement('span');
       lily.className = 'lily';
       pad.appendChild(lily);
-      if (i >= bunnies) {
-        pad.classList.add('is-empty');
-        grid.appendChild(pad);
-        continue;
-      }
       if (i < view.hopped) {
         pad.classList.add('is-up');
         if (i === view.hopped - 1) pad.classList.add('is-jumping');
@@ -225,19 +220,10 @@ export function renderPlayScreen(root, ctx, params) {
         badge.textContent = String(i + 1);
         pad.appendChild(badge);
       }
-      if (i === view.hopped && !view.ready && view.hintLevel < 2) pad.classList.add('is-next');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'bunny';
-      btn.dataset.bunny = String(i);
-      btn.setAttribute('aria-label', i < view.hopped ? 'Hopped bunny' : 'Bunny');
-      btn.innerHTML = bunnyMarkup(SCARVES[i % SCARVES.length]);
-      if (i === view.hopped && !view.ready && view.hintLevel < 2 && !view.solved) {
-        onActivate(btn, () => doHop());
-      } else {
-        btn.disabled = true;
-      }
-      pad.appendChild(btn);
+      const fig = document.createElement('span');
+      fig.className = 'bunny';
+      fig.innerHTML = bunnyMarkup(SCARVES[i % SCARVES.length]);
+      pad.appendChild(fig);
       grid.appendChild(pad);
     }
     return grid;
@@ -280,7 +266,7 @@ export function renderPlayScreen(root, ctx, params) {
   function answerBar(view) {
     const bar = document.createElement('div');
     bar.className = 'answer-bar';
-    bar.appendChild(hopButton(view));
+    if (view.problem.mode !== 'howMany') bar.appendChild(hopButton(view));
     const picks = document.createElement('div');
     picks.className = 'picks';
     for (const n of view.problem.choices) {

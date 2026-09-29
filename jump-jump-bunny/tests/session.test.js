@@ -46,7 +46,8 @@ describe('counting 1 to 10', () => {
     for (let i = 0; i < trip.length; i += 1) {
       expect(trip[i].target).toBeGreaterThanOrEqual(1);
       expect(trip[i].target).toBeLessThanOrEqual(5);
-      expect(trip[i].padCount).toBe(5);
+      expect(trip[i].bunnyCount).toBe(trip[i].target);
+      expect(trip[i].padCount).toBe(trip[i].target);
       if (i > 0) expect(trip[i].target).not.toBe(trip[i - 1].target);
     }
   });
@@ -77,33 +78,27 @@ describe('counting 1 to 10', () => {
 });
 
 describe('hop then answer', () => {
-  it('ignores a how-many answer until every bunny has hopped', () => {
-    const problem = { mode: 'howMany', target: 3, choices: [2, 3, 4], bunnyCount: 3, padCount: 5 };
-    let round = freshRound(problem, 0);
-    expect(answer(round, 3).ignored).toBe(true);
-    round = hopOnce(round).round;
-    round = hopOnce(round).round;
-    expect(round.ready).toBe(false);
-    round = hopOnce(round).round;
-    expect(round.hopped).toBe(3);
+  it('answers how many on the first tap', () => {
+    const problem = { mode: 'howMany', target: 3, choices: [2, 3, 4], bunnyCount: 3, padCount: 3 };
+    const round = freshRound(problem, 0);
     expect(round.ready).toBe(true);
-    expect(hopOnce(round).hoppedNow).toBe(false);
     const hit = answer(round, 3);
     expect(hit.correct).toBe(true);
     expect(hit.triesUntilCorrect).toBe(1);
     expect(hit.tripDone).toBe(false);
+    expect(hit.round.hopped).toBe(3);
   });
 
   it('uses retry, then shows the count, and still requires the right tap', () => {
-    const problem = { mode: 'howMany', target: 2, choices: [1, 2, 3], bunnyCount: 2, padCount: 5 };
-    let round = freshRound(problem, 1);
-    round = hopOnce(hopOnce(round).round).round;
+    const problem = { mode: 'howMany', target: 2, choices: [1, 2, 3], bunnyCount: 2, padCount: 2 };
+    const round = freshRound(problem, 1);
+    expect(round.ready).toBe(true);
     const miss = answer(round, 1);
     expect(miss.hintLevel).toBe(1);
+    expect(miss.round.ready).toBe(true);
     expect(miss.round.hopped).toBe(0);
     expect(miss.round.wrongPicks).toEqual([1]);
-    round = hopOnce(hopOnce(miss.round).round).round;
-    const shown = answer(round, 3);
+    const shown = answer(miss.round, 3);
     expect(shown.hintLevel).toBe(2);
     expect(shown.round.hopped).toBe(2);
     expect(shown.round.ready).toBe(true);
