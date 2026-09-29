@@ -9,6 +9,8 @@ describe('garden gate', () => {
     expect(html).toContain('href="./jjb/"');
     expect(html).toContain('Toot-Toot Twenty');
     expect(html).toContain('Jump-Jump Bunny');
+    expect(html).toContain('<title>Toot-Toot &amp; Jump-Jump</title>');
+    expect(html).toContain('class="gate-title"');
   });
 
   it('offers a way back only from a bundled game path', () => {
