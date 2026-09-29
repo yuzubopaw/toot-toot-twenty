@@ -1,5 +1,7 @@
 #!/bin/sh
 # Start Toot-Toot Twenty so an iPad on the same Wi-Fi can play.
+# For the chooser (Toot-Toot and Jump-Jump together): npm run build && npm run preview
+# For Jump-Jump Bunny alone: npm run dev:jjb
 ROOT="$(CDPATH= cd -- "$(dirname "$0")" && pwd)"
 if command -v npm >/dev/null 2>&1; then
   PATH_OK=1

@@ -1,4 +1,6 @@
 import { renderMuteButton } from '../../ui/MuteButton.js';
+import { renderGateButton } from '../../ui/GateButton.js';
+import { bundleParentHref } from '../gate.js';
 import { onActivate } from '../input/pointer.js';
 import { renderJourney } from '../../ui/Journey.js';
 import { sceneryMarkup } from '../../ui/Scenery.js';
@@ -19,6 +21,8 @@ export function renderTitleScreen(root, ctx) {
   );
   const spacer = document.createElement('div');
   chrome.appendChild(spacer);
+  const gateHref = bundleParentHref(location.pathname);
+  if (gateHref) chrome.appendChild(renderGateButton(gateHref));
   const gear = document.createElement('button');
   gear.className = 'chrome-btn';
   gear.setAttribute('aria-label', 'Settings');

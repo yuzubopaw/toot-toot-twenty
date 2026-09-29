@@ -454,6 +454,11 @@
   flex: 0 0 auto;
 }
 
+a.chrome-btn {
+  text-decoration: none;
+  color: inherit;
+}
+
 .chrome-btn {
   width: var(--hit-chrome);
   height: var(--hit-chrome);

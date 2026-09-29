@@ -1,0 +1,252 @@
+.screen-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.screen {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scenery {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 40% at 80% 8%, rgba(255, 246, 220, 0.7), transparent 60%),
+    linear-gradient(180deg, #ffe4f1 0%, var(--color-sky) 28%, #f7b6d2 48%, var(--color-grass) 62%, var(--color-grass-deep) 100%);
+}
+
+.sun {
+  position: absolute;
+  top: 72px;
+  right: 8%;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff6d8, #ffd0e4 70%);
+  border: 4px solid var(--color-ink);
+}
+
+.cloud {
+  position: absolute;
+  height: 36px;
+  width: 92px;
+  background: #fff;
+  border: 3px solid var(--color-ink);
+  border-radius: 40px;
+  opacity: 0.9;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+  border: 3px solid var(--color-ink);
+  border-radius: 50%;
+}
+
+.cloud::before {
+  width: 36px;
+  height: 36px;
+  left: 14px;
+  top: -20px;
+}
+
+.cloud::after {
+  width: 28px;
+  height: 28px;
+  left: 42px;
+  top: -14px;
+}
+
+.cloud-a { top: 18%; left: 8%; }
+.cloud-b { top: 12%; left: 42%; transform: scale(0.8); }
+
+.hill {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  height: 28%;
+  border-radius: 50% 50% 0 0;
+}
+
+.hill-back {
+  bottom: 8%;
+  background: #c6ecb4;
+  border: 4px solid var(--color-ink);
+}
+
+.hill-front {
+  bottom: -6%;
+  height: 24%;
+  background: var(--color-grass-deep);
+}
+
+.blossoms {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18%;
+  height: 40px;
+  background:
+    radial-gradient(circle at 8% 60%, #fff 0 7px, transparent 8px),
+    radial-gradient(circle at 18% 30%, #ff8fb8 0 8px, transparent 9px),
+    radial-gradient(circle at 30% 70%, #fff 0 6px, transparent 7px),
+    radial-gradient(circle at 46% 40%, #e56b99 0 8px, transparent 9px),
+    radial-gradient(circle at 62% 66%, #ffd0e4 0 7px, transparent 8px),
+    radial-gradient(circle at 78% 34%, #fff 0 8px, transparent 9px),
+    radial-gradient(circle at 90% 60%, #ff8fb8 0 7px, transparent 8px);
+}
+
+.screen > :not(.scenery) {
+  position: relative;
+  z-index: 2;
+}
+
+.chrome {
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--hit-chrome);
+  padding: 8px 12px;
+  flex: 0 0 auto;
+}
+
+.chrome .hint-line {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+}
+
+[data-layout="stacked"] .chrome .hint-line {
+  display: none;
+}
+
+.chrome-end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chrome-btn {
+  width: var(--hit-chrome);
+  height: var(--hit-chrome);
+  min-width: var(--hit-chrome);
+  min-height: var(--hit-chrome);
+  flex: 0 0 auto;
+  border-radius: 18px;
+  background: var(--color-cream);
+  box-shadow: var(--shadow-soft);
+  font-size: 28px;
+  display: grid;
+  place-items: center;
+  border: var(--outline);
+}
+
+.chrome-btn svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+  pointer-events: none;
+}
+
+.chrome-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 4px 0 rgba(58, 32, 48, 0.14);
+}
+
+.tickets {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+}
+
+.ticket {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid var(--color-ink);
+  background: var(--color-cream);
+}
+
+.ticket.is-on {
+  background: var(--color-rose);
+}
+
+.stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.answer-bar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--gap-answers);
+  padding: 8px 12px 14px;
+  min-height: 112px;
+}
+
+.is-locked .stage button,
+.is-locked .answer-bar button {
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: rgba(58, 32, 48, 0.28);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.card {
+  width: min(560px, 100%);
+  background: var(--color-cream);
+  border: 5px solid var(--color-ink);
+  border-radius: 28px;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 22px;
+}
+
+.unsupported-card {
+  margin: auto;
+  width: min(420px, 92%);
+  background: var(--color-cream);
+  border: 5px solid var(--color-ink);
+  border-radius: 28px;
+  padding: 24px;
+  text-align: center;
+  font-size: 28px;
+}

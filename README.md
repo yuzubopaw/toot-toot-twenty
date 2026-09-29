@@ -1,8 +1,9 @@
-# Toot-Toot Twenty
+# Play
 
-A colorful kindergarten math game for 5-year-olds. Play in **iPad Safari** or a desktop browser.
+One page, two kindergarten games. A child taps a picture to choose.
 
-Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together. The first map already has **Garden Siding** (add), **Tally Track** (count up to 50), and **Date Depot** (put days in order up to 31). Extra addition stations unlock along the line.
+- **Toot-Toot** — addition, counting to 50, and ordering days.
+- **Jump-Jump** — counting from 1 to 10 with hopping bunnies. Pink meadow, for a K1 child.
 
 ## Play on the web
 
@@ -10,23 +11,48 @@ Open this link on an iPad or any phone/computer (no Mac server needed):
 
 **https://yuzubopaw.github.io/toot-toot-twenty/**
 
+The first page is the chooser. Toot-Toot lives at `ttt/`. Jump-Jump lives at `jjb/`. Each game keeps its own save on the iPad.
+
 ## Play on this computer
 
 ```bash
-cd Math_Games
 npm install
 npm test
-npm run dev
+npm run build
+npm run preview
 ```
 
-Then open the URL Vite prints (usually `http://localhost:5173`).
+Open the URL Vite prints (usually `http://localhost:4173`). That page is the chooser.
+
+To work on one game alone:
+
+- Toot-Toot: `npm run dev` (usually `http://localhost:5173`)
+- Jump-Jump: `npm run dev:jjb` (usually `http://localhost:5174`)
+
+## Jump-Jump Bunny
+
+Count from 1 to 10. Three meadows are open on a new save:
+
+1. **How many** — tap Hop once for each bunny, then tap the number.
+2. **Hop to** — a big number is showing. Hop that many, then tap Done.
+3. **What next** — bunnies sit on 1, 2, 3… Which number comes next?
+
+Five hops finish a visit, then the bunnies parade. A miss tries again, then counts with you. There is no red X and no timer. Home goes back to the bunny title. The train-and-bunny button on that title returns to the chooser.
+
+Grown-ups: Settings, then hold the flower for 3 seconds to reset. Mute is the speaker button.
+
+## Toot-Toot Twenty
+
+A colorful kindergarten math game for 5-year-olds. Play in **iPad Safari** or a desktop browser.
+
+Sunny Station: two trains of animal friends arrive. Couple them, count, tap how many ride together. The first map already has **Garden Siding** (add), **Tally Track** (count up to 50), and **Date Depot** (put days in order up to 31). Extra addition stations unlock along the line.
 
 ## Play on an iPad (same home Wi‑Fi)
 
-1. On this Mac, run `npm run dev` (it already uses `--host`).
-2. Look for a Network URL like `http://192.168.x.x:5173`.
+1. On this Mac, run `npm run build` and then `npm run preview` (it uses `--host`).
+2. Look for a Network URL like `http://192.168.x.x:4173`.
 3. On the iPad, open **Safari** and type that address.
-4. Tap the big red engine (**Tap to play**).
+4. Tap the train or the bunny. Inside a game, tap **Tap to play**.
 
 The iPad and the Mac must be on the **same home network**. Do not use `localhost` on the iPad — that is the iPad itself, not the Mac.
 

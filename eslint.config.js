@@ -3,7 +3,7 @@ export default [
     ignores: ['dist/**', 'node_modules/**'],
   },
   {
-    files: ['src/**/*.js', 'tests/**/*.js'],
+    files: ['src/**/*.js', 'tests/**/*.js', 'jump-jump-bunny/src/**/*.js', 'jump-jump-bunny/tests/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -17,6 +17,10 @@ export default [
         console: 'readonly',
         URL: 'readonly',
         fetch: 'readonly',
+        location: 'readonly',
+        navigator: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
       },
     },
     rules: {
