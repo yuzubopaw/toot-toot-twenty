@@ -9,9 +9,9 @@ One page, two kindergarten games. A child taps a picture to choose.
 
 Open this link on an iPad or any phone/computer (no Mac server needed):
 
-**https://yuzubopaw.github.io/toot-toot-twenty/**
+**https://yuzubopaw.github.io/toot-toot-and-jump-jump/**
 
-The first page is named Toot-Toot & Jump-Jump. Toot-Toot lives at `ttt/`. Jump-Jump lives at `jjb/`. Each game keeps its own save on the iPad.
+The first page is named Toot-Toot & Jump-Jump. Toot-Toot lives at `ttt/`. Jump-Jump lives at `jjb/`. Each game keeps its own save on the iPad. The older address `toot-toot-twenty` opens this same page.
 
 ## Play on this computer
 
