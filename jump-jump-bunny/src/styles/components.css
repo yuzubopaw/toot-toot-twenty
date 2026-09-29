@@ -293,7 +293,37 @@
   line-height: 26px;
 }
 
-.meadow,
+.meadow {
+  --cell: min(132px, 22vh);
+  width: min(100%, calc(var(--cols, 5) * var(--cell)));
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
+  gap: 8px;
+  align-content: center;
+  justify-items: center;
+}
+
+.meadow .pad {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 0.92;
+}
+
+.meadow .lily {
+  width: 84%;
+  height: 28%;
+  bottom: 8%;
+}
+
+.meadow .bunny {
+  width: 100%;
+  height: 108%;
+}
+
+.meadow .bunny .bunny-hop {
+  height: 148%;
+}
+
 .stone-line {
   width: min(760px, 100%);
   display: grid;
