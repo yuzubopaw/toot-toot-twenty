@@ -28,12 +28,23 @@ function cardArt(mode) {
     return wrap;
   }
   if (mode === 'countOut') {
-    wrap.className = 'mini-row';
+    wrap.className = 'mini-count';
+    const row = document.createElement('span');
+    row.className = 'mini-count-row';
     const num = document.createElement('span');
     num.className = 'stone-pip';
-    num.textContent = '4';
-    wrap.appendChild(num);
-    wrap.insertAdjacentHTML('beforeend', bunnyMarkup(SCARVES[1]));
+    num.textContent = '3';
+    row.appendChild(num);
+    const nests = document.createElement('span');
+    nests.className = 'mini-nests';
+    for (let i = 0; i < 3; i += 1) {
+      const nest = document.createElement('span');
+      nest.className = 'mini-nest';
+      nests.appendChild(nest);
+    }
+    row.appendChild(nests);
+    wrap.appendChild(row);
+    wrap.insertAdjacentHTML('beforeend', bunnyMarkup());
     return wrap;
   }
   wrap.className = 'stone-row';

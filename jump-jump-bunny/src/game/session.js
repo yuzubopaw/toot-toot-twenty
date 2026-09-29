@@ -57,8 +57,8 @@ export function nextProblem(mode, recent, rng, previousTarget) {
     problem.bunnyCount = target;
     problem.padCount = target <= 5 ? 5 : 10;
   } else if (mode === 'countOut') {
-    problem.bunnyCount = Math.min(10, target + 2);
-    problem.padCount = problem.bunnyCount;
+    problem.bunnyCount = target;
+    problem.padCount = target;
   } else {
     problem.shown = [];
     for (let n = 1; n < target; n += 1) problem.shown.push(n);
@@ -108,7 +108,7 @@ export function hopOnce(round) {
       count: null,
     };
   }
-  const cap = mode === 'howMany' ? round.problem.target : round.problem.bunnyCount;
+  const cap = mode === 'howMany' || mode === 'countOut' ? round.problem.target : round.problem.bunnyCount;
   if (round.hopped >= cap || (mode === 'howMany' && round.ready)) {
     return { round, hoppedNow: false };
   }

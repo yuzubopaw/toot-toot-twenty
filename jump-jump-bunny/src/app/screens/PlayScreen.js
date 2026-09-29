@@ -76,7 +76,8 @@ export function renderPlayScreen(root, ctx, params) {
     const screen = document.createElement('div');
     screen.className = `screen${inputLocked ? ' is-locked' : ''}`;
     screen.innerHTML = sceneryMarkup();
-    screen.append(chrome(), stage(view), answerBar(view));
+    screen.append(chrome(), stage(view));
+    if (view.problem.mode !== 'countOut') screen.appendChild(answerBar(view));
     if (confirming) screen.appendChild(confirmCard());
     root.appendChild(screen);
   }
@@ -112,15 +113,92 @@ export function renderPlayScreen(root, ctx, params) {
   function stage(view) {
     const box = document.createElement('div');
     box.className = `stage${view.problem.mode === 'countOut' ? ' is-count' : ''}`;
-    if (view.problem.mode === 'countOut') {
-      const num = document.createElement('div');
-      num.className = 'target-num';
-      num.textContent = String(view.problem.target);
-      num.setAttribute('aria-label', `Hop to ${view.problem.target}`);
-      box.appendChild(num);
-    }
-    box.appendChild(view.problem.mode === 'next' ? stones(view) : meadow(view));
+    if (view.problem.mode === 'countOut') box.appendChild(countBoard(view));
+    else box.appendChild(view.problem.mode === 'next' ? stones(view) : meadow(view));
     return box;
+  }
+
+  /** Pads big enough to see, wrapped so a phone still fits ten. */
+  function countLayout(total) {
+    const wide = document.documentElement.dataset.layout === 'wide';
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const availW = Math.max(200, w - (wide ? 230 : 72));
+    let cols = wide ? Math.min(5, total) : Math.min(5, total, Math.max(1, Math.floor(availW / 92)));
+    while (cols > 1 && cols * 64 + (cols - 1) * 8 > availW) cols -= 1;
+    const rows = Math.ceil(total / cols);
+    const launch = Math.round(Math.max(104, Math.min(140, h * 0.24)));
+    const numberBlock = wide ? 12 : 118;
+    const budget = h - 86 - numberBlock - launch - 40;
+    const padCap = Math.floor((availW - (cols - 1) * 8) / cols);
+    let pad = Math.floor((budget - Math.max(0, rows - 1) * 8) / Math.max(1, rows));
+    pad = Math.max(60, Math.min(128, pad, padCap));
+    return { cols, pad, launch };
+  }
+
+  function countBoard(view) {
+    const total = view.problem.target;
+    const layout = countLayout(total);
+    const board = document.createElement('div');
+    board.className = 'count-board';
+    board.style.setProperty('--cols', String(layout.cols));
+    board.style.setProperty('--pad', `${layout.pad}px`);
+    board.style.setProperty('--launch', `${layout.launch}px`);
+
+    const num = document.createElement('div');
+    num.className = 'target-num';
+    num.textContent = String(total);
+    num.setAttribute('aria-label', `Hop to ${total}`);
+    if (view.solved || view.hopped === total) num.classList.add('is-yes');
+    board.appendChild(num);
+
+    const play = document.createElement('div');
+    play.className = 'count-play';
+    play.appendChild(countTrack(view, layout));
+    if (!view.solved && view.hopped < total) play.appendChild(hopButton(view));
+    board.appendChild(play);
+    return board;
+  }
+
+  function countTrack(view, layout) {
+    const grid = document.createElement('div');
+    grid.className = 'count-track';
+    const total = view.problem.target;
+    grid.style.setProperty('--cols', String(layout.cols));
+    grid.style.setProperty('--pad', `${layout.pad}px`);
+    for (let i = 0; i < total; i += 1) {
+      const pad = document.createElement('div');
+      pad.className = 'pad';
+      const lily = document.createElement('span');
+      lily.className = 'lily';
+      pad.appendChild(lily);
+      if (i < view.hopped) {
+        pad.classList.add('is-up');
+        if (i === view.hopped - 1) pad.classList.add('is-jumping');
+        const badge = document.createElement('span');
+        badge.className = 'hop-num';
+        badge.textContent = String(i + 1);
+        pad.appendChild(badge);
+        const landed = document.createElement('span');
+        landed.className = 'bunny-landed';
+        landed.innerHTML = bunnyMarkup(SCARVES[i % SCARVES.length]);
+        pad.appendChild(landed);
+      } else {
+        pad.classList.add('is-empty');
+        const open = i === view.hopped && !view.solved;
+        if (open) {
+          pad.classList.add('is-next');
+          const hit = document.createElement('button');
+          hit.type = 'button';
+          hit.className = 'pad-hit';
+          hit.setAttribute('aria-label', 'Hop');
+          onActivate(hit, () => doHop());
+          pad.appendChild(hit);
+        }
+      }
+      grid.appendChild(pad);
+    }
+    return grid;
   }
 
   function meadow(view) {
@@ -202,10 +280,6 @@ export function renderPlayScreen(root, ctx, params) {
   function answerBar(view) {
     const bar = document.createElement('div');
     bar.className = 'answer-bar';
-    if (view.problem.mode === 'countOut') {
-      bar.append(hopButton(view), doneButton(view));
-      return bar;
-    }
     bar.appendChild(hopButton(view));
     const picks = document.createElement('div');
     picks.className = 'picks';
@@ -233,32 +307,25 @@ export function renderPlayScreen(root, ctx, params) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'hop-btn';
-    btn.textContent = 'Hop';
     btn.setAttribute('aria-label', 'Hop');
+    const countOut = view.problem.mode === 'countOut';
+    if (countOut) {
+      btn.classList.add('is-bunny');
+      btn.innerHTML = bunnyMarkup();
+    } else {
+      btn.textContent = 'Hop';
+    }
     const doneHopping =
       view.hintLevel >= 2 ||
       view.solved ||
       (view.problem.mode === 'howMany' && view.ready) ||
       (view.problem.mode === 'next' && view.ready) ||
-      (view.problem.mode === 'countOut' && view.hopped >= view.problem.bunnyCount);
-    if (!doneHopping && !view.ready) btn.classList.add('is-waiting');
+      (countOut && view.hopped >= view.problem.target);
+    if (countOut) {
+      if (!doneHopping) btn.classList.add('is-waiting');
+    } else if (!doneHopping && !view.ready) btn.classList.add('is-waiting');
     if (doneHopping) btn.classList.add('is-dim');
     onActivate(btn, () => doHop());
-    return btn;
-  }
-
-  function doneButton(view) {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'done-btn';
-    btn.textContent = 'Done';
-    btn.setAttribute('aria-label', 'Done');
-    if (view.hopped < 1) btn.classList.add('is-dim');
-    if (view.revealed || (view.hintLevel >= 2 && view.hopped === view.problem.target)) {
-      btn.classList.add('is-reveal');
-    }
-    if (view.solved) btn.classList.add('is-yes');
-    onActivate(btn, () => doDone());
     return btn;
   }
 
@@ -271,23 +338,19 @@ export function renderPlayScreen(root, ctx, params) {
     }
     round = result.round;
     ctx.audio.playSfx('hop');
-    if (result.count != null) ctx.audio.speakNumber(result.count, gap());
+    if (round.problem.mode === 'countOut' && round.hopped === round.problem.target) {
+      take(submitCountOut(round));
+      return;
+    }
+    if (result.count != null) {
+      ctx.audio.speakNumber(result.count, gap(), { caption: round.problem.mode !== 'countOut' });
+    }
     paint();
   }
 
   function onChoice(value) {
     if (!alive || inputLocked || confirming || round.solved) return;
     const result = answer(round, value);
-    if (result.ignored) {
-      nudge();
-      return;
-    }
-    take(result);
-  }
-
-  function doDone() {
-    if (!alive || inputLocked || confirming || round.solved) return;
-    const result = submitCountOut(round);
     if (result.ignored) {
       nudge();
       return;
@@ -311,7 +374,9 @@ export function renderPlayScreen(root, ctx, params) {
     round = result.round;
     inputLocked = true;
     ctx.audio.playSfx('cheer');
-    ctx.audio.speakNumber(round.problem.target, ctx.reduceMotion() ? 320 : CELEBRATE_MS);
+    ctx.audio.speakNumber(round.problem.target, ctx.reduceMotion() ? 320 : CELEBRATE_MS, {
+      caption: round.problem.mode !== 'countOut',
+    });
     firstTries.push(result.triesUntilCorrect);
     ctx.save.progress = recordCorrect(ctx.save.progress, mode, result.triesUntilCorrect);
     if (result.tripDone) ctx.save.progress = recordTrip(ctx.save.progress, mode);
@@ -380,6 +445,10 @@ export function renderPlayScreen(root, ctx, params) {
 
   function finishAuto() {
     inputLocked = false;
+    if (round.problem.mode === 'countOut' && round.hopped === round.problem.target && !round.solved) {
+      take(submitCountOut(round));
+      return;
+    }
     paint();
   }
 
