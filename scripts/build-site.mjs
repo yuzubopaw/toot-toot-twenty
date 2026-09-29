@@ -31,3 +31,4 @@ await run([
 await cp(path.join(root, 'site/index.html'), path.join(dist, 'index.html'));
 await cp(path.join(root, 'site/gate.css'), path.join(dist, 'gate.css'));
 await cp(path.join(root, 'site/favicon.svg'), path.join(dist, 'favicon.svg'));
+await cp(path.join(root, 'site/bunny-hop.webp'), path.join(dist, 'bunny-hop.webp'));
