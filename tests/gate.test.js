@@ -14,8 +14,8 @@ describe('garden gate', () => {
   });
 
   it('offers a way back only from a bundled game path', () => {
-    expect(bundleParentHref('/toot-toot-twenty/ttt/')).toBe('../');
-    expect(bundleParentHref('/toot-toot-twenty/jjb/index.html')).toBe('../');
+    expect(bundleParentHref('/toot-toot-and-jump-jump/ttt/')).toBe('../');
+    expect(bundleParentHref('/toot-toot-and-jump-jump/jjb/index.html')).toBe('../');
     expect(bundleParentHref('/')).toBeNull();
     expect(bundleParentHref('/index.html')).toBeNull();
   });
