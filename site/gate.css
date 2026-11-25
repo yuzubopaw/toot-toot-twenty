@@ -21,7 +21,15 @@ body {
   user-select: none;
   font-family: Fredoka, ui-rounded, "Trebuchet MS", sans-serif;
   color: #1a1a1a;
-  background: linear-gradient(90deg, #7fd4f5 0%, #d7f3ff 46%, #ffd6ea 54%, #f7a8c9 100%);
+  background: linear-gradient(
+    90deg,
+    #7fd4f5 0%,
+    #d7f3ff 28%,
+    #ffd6ea 42%,
+    #f7a8c9 62%,
+    #e6fbf3 78%,
+    #8eddc4 100%
+  );
 }
 
 body {
@@ -157,6 +165,32 @@ body {
   color: #3a2030;
 }
 
+.gate-oic .gate-art {
+  background: linear-gradient(180deg, #e6fbf3, #8eddc4);
+}
+
+.gate-oic .gate-name {
+  background: #fff8ea;
+  color: #3b2418;
+}
+
+.cone-stack {
+  width: min(180px, 70%);
+  height: auto;
+  max-height: 46vh;
+}
+
+.scoop-top {
+  transform-origin: 40px 28px;
+  animation: scoop-wobble 3s ease-in-out infinite;
+}
+
+@keyframes scoop-wobble {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  80% { transform: rotate(-6deg); }
+  90% { transform: rotate(6deg); }
+}
+
 /* Nine cells across bunny-hop.webp. Position percents are i/8, which lands
    each cell when background-size is 900% of the box. */
 @keyframes bunny-hop {
@@ -180,7 +214,7 @@ body {
 @media (max-width: 700px), (orientation: portrait) {
   html,
   body {
-    background: linear-gradient(180deg, #7fd4f5 0%, #d7f3ff 42%, #ffd6ea 58%, #f7a8c9 100%);
+    background: linear-gradient(180deg, #7fd4f5 0%, #d7f3ff 32%, #ffd6ea 52%, #f7a8c9 68%, #e6fbf3 84%, #8eddc4 100%);
   }
 
   .gate-title {
@@ -203,7 +237,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .bunny-hop,
-  .spark {
+  .spark,
+  .scoop-top {
     animation: none;
   }
 }

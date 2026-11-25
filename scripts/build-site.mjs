@@ -28,6 +28,15 @@ await run([
   path.join(dist, 'jjb'),
   '--emptyOutDir',
 ]);
+await run([
+  'vite',
+  'build',
+  '--config',
+  'oh-no-ice-cream/vite.config.js',
+  '--outDir',
+  path.join(dist, 'oic'),
+  '--emptyOutDir',
+]);
 await cp(path.join(root, 'site/index.html'), path.join(dist, 'index.html'));
 await cp(path.join(root, 'site/gate.css'), path.join(dist, 'gate.css'));
 await cp(path.join(root, 'site/favicon.svg'), path.join(dist, 'favicon.svg'));

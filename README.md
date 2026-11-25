@@ -1,9 +1,10 @@
-# Toot-Toot & Jump-Jump
+# Toot-Toot, Jump-Jump & Oh-No!
 
-One page, two kindergarten games. A child taps a picture to choose.
+One page, three kindergarten games. A child taps a picture to choose.
 
 - **Toot-Toot** — addition, counting to 50, and ordering days.
 - **Jump-Jump** — counting from 1 to 10 with hopping bunnies. Pink meadow, for a K1 child.
+- **Oh-No** — subtraction within 20. Scoops fall off a cone, and the child says how many are left.
 
 ## Play on the web
 
@@ -11,7 +12,7 @@ Open this link on an iPad or any phone/computer (no Mac server needed):
 
 **https://yuzubopaw.github.io/yuzubomath/**
 
-The first page is named Toot-Toot & Jump-Jump. Toot-Toot lives at `ttt/`. Jump-Jump lives at `jjb/`. Each game keeps its own save on the iPad. Older addresses `toot-toot-twenty` and `toot-toot-and-jump-jump` open this same page.
+The first page is named Toot-Toot, Jump-Jump & Oh-No!. Toot-Toot lives at `ttt/`. Jump-Jump lives at `jjb/`. Oh-No Ice Cream lives at `oic/`. Each game keeps its own save on the iPad. Older addresses `toot-toot-twenty` and `toot-toot-and-jump-jump` open this same page.
 
 ## Play on this computer
 
@@ -28,6 +29,7 @@ To work on one game alone:
 
 - Toot-Toot: `npm run dev` (usually `http://localhost:5173`)
 - Jump-Jump: `npm run dev:jjb` (usually `http://localhost:5174`)
+- Oh-No Ice Cream: `npm run dev:oic` (usually `http://localhost:5175`)
 
 ## Jump-Jump Bunny
 
@@ -40,6 +42,20 @@ Count from 1 to 10. Three meadows are open on a new save:
 Five hops finish a visit, then the bunnies parade. A miss tries again, then counts with you. There is no red X and no timer. Home goes back to the bunny title. The train-and-bunny button on that title returns to the chooser.
 
 Grown-ups: Settings, then hold the flower for 3 seconds to reset. Mute is the speaker button.
+
+## Oh-No Ice Cream
+
+Subtraction within 20. Five stands:
+
+1. **Plop!** — scoops fall off the tray. Tap once for each scoop that falls, then tap how many are left.
+2. **Drip Drop** — count back 1, 2, or 3 on a number path.
+3. **Oops!** — some scoops already fell. How many fell?
+4. **Ten Trick** — opens after Plop! reaches teen numbers. Break a teen number at ten.
+5. **Sundae Sampler** — opens after one Ten Trick visit. A mix of the other stands.
+
+Five customers finish a visit, then they parade. A miss tries again, then counts with you, then shows the answer. The child still taps the right number. There is no red X and no timer.
+
+Grown-ups: Settings, then hold the sun for 3 seconds. That opens unlock-all and reset. Reset is a second 3-second hold. Mute is the speaker button.
 
 ## Toot-Toot Twenty
 

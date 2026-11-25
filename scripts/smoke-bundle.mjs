@@ -71,36 +71,23 @@ if (mapOverlap) throw new Error('meadow card slides under the top buttons');
 await shot('04-jjb-map.png');
 
 await page.click('[data-mode="howMany"]');
-await page.waitForSelector('[aria-label="Hop"]');
+await page.waitForSelector('.choice');
 const earlyCaption = await page.$eval('.caption', (el) => el.classList.contains('is-on'));
-if (earlyCaption) throw new Error('count was showing before any hop');
+if (earlyCaption) throw new Error('count was showing before an answer');
 const choiceH = await page.$eval('.choice', (el) => el.getBoundingClientRect().height);
 if (choiceH < 88) throw new Error(`choice height ${choiceH}`);
 await shot('05-howmany-wait.png');
 const need = await page.$$eval('.bunny', (els) => els.length);
 if (need < 1 || need > 5) throw new Error(`early how-many showed ${need}`);
-for (let i = 0; i < need; i += 1) {
-  await page.click('[aria-label="Hop"]');
-}
-await page.waitForFunction(
-  (count) => document.querySelectorAll('.pad.is-up').length === count,
-  {},
-  need,
-);
-const hopNums = await page.$$eval('.hop-num', (els) => els.map((el) => el.textContent).join(','));
-const expectedNums = Array.from({ length: need }, (_, i) => String(i + 1)).join(',');
-if (hopNums !== expectedNums) throw new Error(`hop numbers ${hopNums}`);
 const wrong = await page.$$eval('.choice', (els, count) => {
   const other = els.find((el) => el.dataset.value !== String(count));
   return other ? other.dataset.value : null;
 }, need);
 if (!wrong) throw new Error('no wrong choice');
 await page.click(`.choice[data-value="${wrong}"]`);
-await page.waitForFunction(() => document.querySelectorAll('.pad.is-up').length === 0);
 const bodyText = await page.evaluate(() => document.body.innerText);
 if (/wrong|fail|too slow/i.test(bodyText)) throw new Error(`shame copy: ${bodyText}`);
 await shot('06-howmany-retry.png');
-for (let i = 0; i < need; i += 1) await page.click('[aria-label="Hop"]');
 await page.waitForSelector(`.choice[data-value="${need}"]:not(.is-dim)`);
 await page.click(`.choice[data-value="${need}"]`);
 await page.waitForFunction(() => document.querySelectorAll('.ticket.is-on').length === 1);
@@ -134,8 +121,10 @@ const target = Number(await page.$eval('.target-num', (el) => el.textContent));
 if (target < 1 || target > 5) throw new Error(`count-out target ${target}`);
 const targetBox = await box('.target-num');
 if (targetBox.height < 64) throw new Error(`numeral too small ${targetBox.height}`);
-for (let i = 0; i < target; i += 1) await page.click('[aria-label="Hop"]');
-await page.click('[aria-label="Done"]');
+for (let i = 0; i < target; i += 1) {
+  await page.click('[aria-label="Hop"]');
+  await new Promise((resolve) => setTimeout(resolve, 200));
+}
 await page.waitForFunction(() => document.querySelectorAll('.ticket.is-on').length === 1);
 await shot('10-phone-countout.png');
 
@@ -176,6 +165,46 @@ await shot('12-ttt-map.png');
 await page.click('[aria-label="All games"]');
 await page.waitForSelector('[aria-label="Jump-Jump Bunny"]');
 await shot('13-back-to-gate.png');
+
+await page.setViewport({ width: 1280, height: 800 });
+await box('[aria-label="Oh-No Ice Cream"]');
+await page.setViewport({ width: 390, height: 844 });
+await box('[aria-label="Oh-No Ice Cream"]');
+await page.setViewport({ width: 1280, height: 800 });
+await page.click('[aria-label="Oh-No Ice Cream"]');
+await page.waitForSelector('[aria-label="Tap to play"]');
+if (!page.url().includes('/oic/')) throw new Error(`oic url ${page.url()}`);
+await box('[aria-label="Tap to play"]');
+await box('[aria-label="All games"]');
+await shot('14-oic-title.png');
+await page.click('[aria-label="Tap to play"]');
+await page.waitForSelector('[data-mode="plop"]');
+await box('[data-mode="plop"]');
+await box('[data-mode="dripDrop"]');
+await box('[data-mode="oops"]');
+if (!(await page.$('[data-mode="tenTrick"].is-locked'))) throw new Error('Ten Trick should start locked');
+if (!(await page.$('[data-mode="sampler"].is-locked'))) throw new Error('Sampler should start locked');
+await shot('15-oic-map.png');
+await page.click('[data-mode="plop"]');
+await page.waitForSelector('.action-btn');
+for (let i = 0; i < 8; i += 1) {
+  const btn = await page.$('.action-btn');
+  if (!btn) break;
+  await btn.click();
+  await new Promise((resolve) => setTimeout(resolve, 180));
+}
+if (await page.$('.action-btn')) throw new Error('action button stayed on');
+const left = await page.$$eval('.cell.is-here', (els) => els.length);
+await page.waitForSelector(`[data-answer="${left}"]`);
+await page.click(`[data-answer="${left}"]`);
+await page.waitForFunction(() => document.querySelectorAll('.ticket.is-on').length >= 1);
+await shot('16-oic-plop.png');
+await page.click('.chrome [aria-label="Home"]');
+await page.waitForSelector('[aria-label="Keep playing"]');
+await page.click('.confirm-leave');
+await page.waitForSelector('[aria-label="Tap to play"]');
+await page.click('[aria-label="All games"]');
+await page.waitForSelector('[aria-label="Toot-Toot Twenty"]');
 
 if (errors.length) throw new Error(errors.join('\n'));
 await browser.close();

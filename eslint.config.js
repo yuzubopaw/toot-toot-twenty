@@ -3,7 +3,14 @@ export default [
     ignores: ['dist/**', 'node_modules/**'],
   },
   {
-    files: ['src/**/*.js', 'tests/**/*.js', 'jump-jump-bunny/src/**/*.js', 'jump-jump-bunny/tests/**/*.js'],
+    files: [
+      'src/**/*.js',
+      'tests/**/*.js',
+      'jump-jump-bunny/src/**/*.js',
+      'jump-jump-bunny/tests/**/*.js',
+      'oh-no-ice-cream/src/**/*.js',
+      'oh-no-ice-cream/tests/**/*.js',
+    ],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

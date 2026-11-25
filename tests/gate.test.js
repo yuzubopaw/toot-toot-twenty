@@ -7,9 +7,11 @@ describe('garden gate', () => {
     const html = readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
     expect(html).toContain('href="./ttt/"');
     expect(html).toContain('href="./jjb/"');
+    expect(html).toContain('href="./oic/"');
     expect(html).toContain('Toot-Toot Twenty');
     expect(html).toContain('Jump-Jump Bunny');
-    expect(html).toContain('<title>Toot-Toot &amp; Jump-Jump</title>');
+    expect(html).toContain('Oh-No Ice Cream');
+    expect(html).toContain('<title>Toot-Toot, Jump-Jump &amp; Oh-No!</title>');
     expect(html).toContain('class="gate-title"');
   });
 
